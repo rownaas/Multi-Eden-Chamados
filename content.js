@@ -1,12 +1,54 @@
-chrome.storage.local.get(['usuario', 'senha'], function(result) {
+// Recuperar informações de login armazenadas localmente
+var auth;
+chrome.storage.local.get(['usuario', 'senha'], function (result) {
     var usuario = result.usuario;
     var senha = result.senha;
-  
-    // Faça algo com as informações recuperadas
-    console.log('Usuário:', usuario);
-    console.log('Senha:', senha);
-  });
-  
+
+    // Verificar se usuário e senha são nulos ou indefinidos
+    if (usuario === null || senha === null || typeof usuario === 'undefined' || typeof senha === 'undefined') {
+        // Exibir mensagem pedindo para configurar usuário e senha
+        alert('Por favor, configure seu usuário e senha dentro da extensão do eden');
+        chrome.runtime.sendMessage({ openPopup: true });
+    } else {
+        // Usuário e senha estão presentes, faça algo com as informações recuperadas
+        console.log('Usuário:', usuario);
+        console.log('Senha:', senha);
+        const url = "https://portal.infowaycloud.com.br/api/auth.php";
+        const dados = {
+            login: usuario,
+            senha: senha
+        };
+
+        fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(dados),
+        })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Erro na requisição.');
+                }
+                return response.json();
+            })
+            .then(data => {
+                // Aqui você verifica se a resposta contém o token de acesso
+                if (data.accessToken) {
+                    console.log(data.accessToken);
+                    auth = data.accessToken;
+                    alert("Parabéns, o seu eden está vinculado com a extensão");
+                } else {
+                    throw new Error('Erro: Não foi possível obter o token de acesso.');
+                }
+            })
+            .catch(error => alert('Erro, usuario invalido\n', error));
+    }
+});
+
+
+
+
 // Função para buscar e adicionar o botão
 function buscarEAdicionarBotao() {
     // Procura pelo elemento com a classe 'contact-actions'
@@ -181,12 +223,34 @@ function fecharModal() {
 
 // Função para carregar o JSON e adicionar opções ao <select>
 function carregarClientes() {
-    adicionarOpcoes(clientes);
-    console.log(clientes);
+    url = "https://portal.infowaycloud.com.br/api/clientes.php";
+    fetch(url, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ auth: auth }),
+    })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Erro na requisição.');
+            }
+            return response.json();
+        })
+        .then(data => {
+            // Verifica se a resposta contém a propriedade 'razoesSociais'
+            if (data.razoesSociais) {
+                console.log(data.razoesSociais);
+                adicionarOpcoes(data.razoesSociais);
+            } else {
+                throw new Error('Erro: Não foi possível obter a lista de razões sociais.');
+            }
+        })
+        .catch(error => alert('Erro, usuário inválido\n' + error));
 }
 
 // Função para adicionar as opções ao <select>
-function adicionarOpcoes(clientes) {
+function adicionarOpcoes(razoesSociais) {
     var selectClientes = document.querySelector('.clientes-eden');
 
     // Limpa opções existentes, se houver
@@ -197,14 +261,13 @@ function adicionarOpcoes(clientes) {
     optionPadrao.textContent = 'Clientes';
     selectClientes.appendChild(optionPadrao);
 
-    // Adiciona as opções do JSON
-    clientes.forEach(function (cliente) {
+    // Adiciona as opções do array de razões sociais
+    razoesSociais.forEach(function (razaoSocial) {
         var option = document.createElement('option');
-        option.textContent = cliente.razaoSocial;
+        option.textContent = razaoSocial;
         selectClientes.appendChild(option);
     });
 }
-
 
 
 
