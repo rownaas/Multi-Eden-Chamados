@@ -415,7 +415,6 @@ function lancarModal() {
 
     fetch("https://portal.infowaycloud.com.br/api/chamado.php", requestOptions)
         .then(response => response.text())
-        .then(result => console.log(result))
-        .catch(error => console.log('error', error));
-    console.log(raw);
+        .then(result => alert(result))
+        .catch(error => alert('error', error));
 }
