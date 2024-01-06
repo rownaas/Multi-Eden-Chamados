@@ -254,10 +254,11 @@ function carregarClientes() {
             return response.json();
         })
         .then(data => {
-            // Verifica se a resposta contém a propriedade 'razoesSociais'
-            if (data.razoesSociais) {
-                console.log(data.razoesSociais);
-                adicionarOpcoes(data.razoesSociais);
+            // Verifica se a resposta contém a propriedade 'informacoes'
+            if (data.informacoes) {
+                console.log('Informações dos clientes:');
+                console.table(data.informacoes);
+                adicionarOpcoes(data.informacoes);
             } else {
                 throw new Error('Erro: Não foi possível obter a lista de razões sociais.');
             }
@@ -280,10 +281,22 @@ function adicionarOpcoes(razoesSociais) {
     // Adiciona as opções do array de razões sociais
     razoesSociais.forEach(function (razaoSocial) {
         var option = document.createElement('option');
-        option.textContent = razaoSocial;
+        option.textContent = razaoSocial.razaoSocial;
+    
+        option.setAttribute('id', razaoSocial.id);
+    
+        // Verifica se contatos existe e não é null
+        if (razaoSocial.contatos && razaoSocial.contatos.length > 0) {
+            option.setAttribute('nome', razaoSocial.contatos[0].nome);
+            option.setAttribute('telefone', razaoSocial.contatos[0].telefone);
+        }
+    
         selectClientes.appendChild(option);
     });
+    
 }
+
+
 
 function protocoloModal(protocolo) {
     var selectClientes = document.querySelector('.protocolo-chamado');
@@ -306,6 +319,24 @@ function lancarModal(){
     var protocolo = document.querySelector('#protocolo').value;
     var observacao = document.querySelector('#observacao').value;
 
+    var clienteSelect = document.querySelector('#cliente');
+    var selectedOption = clienteSelect.options[clienteSelect.selectedIndex];
+
+    var telefone = selectedOption.getAttribute('telefone');
+    var nome = selectedOption.getAttribute('nome');
+    var id = selectedOption.id;
+
+     // Saída esperada: "1" (ou o valor correspondente ao ID do option selecionado)
+
+    let dataAtual = new Date();
+    let dia = dataAtual.getDate();
+    let mes = dataAtual.getMonth() + 1; 
+    let ano = dataAtual.getFullYear();
+    let dataCadastro = `${dia.toString().padStart(2, '0')}/${mes.toString().padStart(2, '0')}/${ano}`;
+    let dataFechamento = dataCadastro;
+
+
+
     console.log(origem);
     console.log(status);
     console.log(tipoAtendimento);
@@ -313,6 +344,46 @@ function lancarModal(){
     console.log(protocolo);
     console.log(observacao);
 
+    console.log(nome);
+    console.log(telefone);
+    console.log(id);
+
+    console.log(dataCadastro);
+    console.log(dataFechamento);
+
+    var json_de_novo_chamado = {
+        "id": 0,
+        "origem": origem,
+        "status": status,
+        "dataCadastro": dataCadastro,
+        "dataFechamento": dataFechamento,
+        "contato": nome,
+        "fone": telefone,
+        "protocolo": protocolo,
+        "observacao": observacao,
+        "documento": "",
+        "nomeDocumento": null,
+        "tecnicoResponsavel": {
+            "id": 12,
+            "nome": "Luiz Marroni",
+            "login": "luiz.marroni@infowayti.com.br"
+        },
+        "venda": {
+            "produtos": [],
+            "servico": "",
+            "quantidadeServico": 0,
+            "valorTotalServico": "R$ 0,00",
+            "descontoServico": "0,00 %",
+            "tecnicoServico": "",
+            "observacaoServico": ""
+        },
+        "tipoAtendimento": tipoAtendimento,
+        "cliente": {
+            "razaoSocial": cliente,
+            "id": id
+        }
+    };
+
     
+
 }
-//document.querySelector('#observacao').value
