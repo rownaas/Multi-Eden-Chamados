@@ -1,0 +1,113 @@
+<div class="modal-dialog" ng-class="size ? 'modal-' + size : ''">
+  <div class="modal-content" uib-modal-transclude="">
+    <div class="modal-header ng-scope">
+      <h3 class="ng-binding">Transferir Atendimento</h3>
+    </div>
+    <div class="modal-body ng-scope">
+      <div class="row">
+        <div class="col-sm-12">
+          <div class="form-group fg-float m-b-30">
+            <div class="fg-line fg-toggled">
+              <select
+                class="form-control input-lg select-simples ng-pristine ng-untouched ng-invalid ng-invalid-required"
+                ng-model="departamentoSelecionado.departamentoId"
+                ng-change="onSelecionarDepartamento()"
+                required=""
+                style=""
+              >
+                <option value="? undefined:undefined ?"></option>
+                <!-- ngRepeat: departamento in departamentos -->
+                <option
+                  ng-repeat="departamento in departamentos"
+                  value="799950"
+                  class="ng-binding ng-scope"
+                  style=""
+                >
+                  Administrativo
+                </option>
+                <!-- end ngRepeat: departamento in departamentos -->
+                <option
+                  ng-repeat="departamento in departamentos"
+                  value="799958"
+                  class="ng-binding ng-scope"
+                >
+                  Comercial
+                </option>
+                <!-- end ngRepeat: departamento in departamentos -->
+                <option
+                  ng-repeat="departamento in departamentos"
+                  value="845765"
+                  class="ng-binding ng-scope"
+                >
+                  Físico
+                </option>
+                <!-- end ngRepeat: departamento in departamentos -->
+                <option
+                  ng-repeat="departamento in departamentos"
+                  value="909505"
+                  class="ng-binding ng-scope"
+                >
+                  Implantação
+                </option>
+                <!-- end ngRepeat: departamento in departamentos -->
+                <option
+                  ng-repeat="departamento in departamentos"
+                  value="845773"
+                  class="ng-binding ng-scope"
+                >
+                  Prioritário
+                </option>
+                <!-- end ngRepeat: departamento in departamentos -->
+                <option
+                  ng-repeat="departamento in departamentos"
+                  value="799943"
+                  class="ng-binding ng-scope"
+                >
+                  Suporte N0
+                </option>
+                <!-- end ngRepeat: departamento in departamentos -->
+                <option
+                  ng-repeat="departamento in departamentos"
+                  value="903013"
+                  class="ng-binding ng-scope"
+                >
+                  Suporte N1
+                </option>
+                <!-- end ngRepeat: departamento in departamentos -->
+              </select>
+              <label class="fg-label ng-binding">Departamento</label>
+            </div>
+          </div>
+        </div>
+        <div class="col-sm-12">
+          <div class="form-group fg-float m-b-30">
+            <div class="fg-line fg-toggled">
+              <select
+                class="form-control input-lg select-simples ng-pristine ng-untouched ng-valid"
+                ng-model="departamentoSelecionado.atendenteId"
+              >
+                <option value="0"></option>
+                <!-- ngRepeat: atendente in departamentoSelecionado.atendentes -->
+              </select>
+              <label class="fg-label ng-binding">Atendente</label>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer ng-scope">
+      <button
+        class="btn btn-link ng-binding waves-effect"
+        ng-click="onModalCancelar()"
+      >
+        Fechar
+      </button>
+      <button
+        class="btn btn-link ng-binding waves-effect"
+        ng-click="onModalInserir()"
+      >
+        Enviar
+      </button>
+    </div>
+  </div>
+</div>
