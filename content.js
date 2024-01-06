@@ -105,7 +105,7 @@ function mostrarModal() {
         <div class="col-sm-12">
             <div class="form-group fg-float m-b-30">
                 <div class="fg-line fg-toggled">
-                        <select class="form-control input-lg select-simples" style="">
+                        <select class="form-control input-lg select-simples" id="origem" style="">
                             <option>Whatsapp</option>
                             <option>Atendimento Telefonico</option>
                             <option>Atendimento Presencial</option>
@@ -118,7 +118,7 @@ function mostrarModal() {
         <div class="col-sm-12">
             <div class="form-group fg-float m-b-30">
                 <div class="fg-line fg-toggled">
-                        <select class="form-control input-lg select-simples" style="">
+                        <select class="form-control input-lg select-simples" id="status" style="">
                             <option>Fechado</option>
                             <option>Aberto</option>
                             <option>Pendente</option>
@@ -131,7 +131,7 @@ function mostrarModal() {
     <div class="col-sm-12">
             <div class="form-group fg-float m-b-30">
                 <div class="fg-line fg-toggled">
-                        <select class="form-control input-lg select-simples" style="">
+                        <select class="form-control input-lg select-simples" id="tipoAtendimento" style="">
                             <option>Atualização</option>
                             <option>Infodrive</option>
                             <option>Lentidão</option>
@@ -155,7 +155,7 @@ function mostrarModal() {
         </div><div class="col-sm-12">
             <div class="form-group fg-float m-b-30">
                 <div class="fg-line fg-toggled">
-                        <select class="form-control input-lg select-simples clientes-eden" style="">
+                        <select class="form-control input-lg select-simples clientes-eden" id="cliente" style="">
                             <option>Clientes</option>
                         </select>
                     <label class="fg-label ng-binding">Cliente</label>
@@ -164,28 +164,28 @@ function mostrarModal() {
         </div><div class="col-sm-12">
             <div class="form-group fg-float m-b-30">
                 <div class="fg-line fg-toggled">
-                    <select class="form-control input-lg select-simples ng-pristine ng-untouched ng-valid" ng-model="departamentoSelecionado.atendenteId">
+                    <select class="form-control input-lg select-simples protocolo-chamado" id="protocolo">
                         <option value="0"></option>
-                        <!-- ngRepeat: atendente in departamentoSelecionado.atendentes -->
                     </select>
                     <label class="fg-label ng-binding">Protocolo</label>
                 </div>
             </div>
         </div><div class="col-sm-12">
             <div class="form-group fg-float m-b-30">
-                <div class="fg-line fg-toggled">
-                    <select class="form-control input-lg select-simples ng-pristine ng-untouched ng-valid" ng-model="departamentoSelecionado.atendenteId">
-                        <option value="0"></option>
-                        <!-- ngRepeat: atendente in departamentoSelecionado.atendentes -->
-                    </select>
-                    <label class="fg-label ng-binding">Observações</label>
+                <div class="form-group fg-float ng-scope" ng-if="campo.tipoDado == 'TEXTO'">
+                    <div class="fg-line ng-scope" ng-if="!campo.alternativas &amp;&amp; !campo.integracaoLista">
+                        <div class="fg-line fg-toggled">
+                            <input type="text" class="form-control fg-input input-lg" id="observacao" style="">
+                            <label class="fg-label ng-binding">Observação</label>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div></div>
 </div>
 <div class="modal-footer ng-scope">    
-    <button class="btn btn-link ng-binding waves-effect" ng-click="onModalCancelar()">Fechar</button>
-    <button class="btn btn-link ng-binding waves-effect" ng-click="onModalInserir()">Enviar</button>
+    <button class="btn btn-link ng-binding waves-effect" id="fecharModal" ng-click="onModalCancelar()">Fechar</button>
+    <button class="btn btn-link ng-binding waves-effect" id="lancarModal" ng-click="onModalInserir()">Enviar</button>
 </div></div></div>
 </div>
     `;
@@ -199,12 +199,28 @@ function mostrarModal() {
     document.body.insertAdjacentHTML('beforeend', modalHTML);
     document.body.insertAdjacentHTML('beforeend', outra);
 
-    var closeButton = document.querySelector('.modal-footer .btn-link');
+    var closeButton = document.querySelector('#fecharModal');
     if (closeButton) {
         closeButton.addEventListener('click', fecharModal);
     }
 
-    carregarClientes()
+    var lancarButton = document.querySelector('#lancarModal');
+    if (lancarButton) {
+        lancarButton.addEventListener('click', lancarModal);
+    }
+
+    carregarClientes();
+
+    const xpath = "/html/body/data/section/section/div/div[2]/div[5]/div[2]/div[3]/div/div[2]/div[1]";
+    const xpathResult = document.evaluate(xpath, document, null, XPathResult.STRING_TYPE, null);
+
+    // Obtenha o valor do XPathResult
+    const Protocolo = xpathResult.stringValue;
+
+    // Exiba o valor
+    console.log(Protocolo);
+
+    protocoloModal(Protocolo);
 }
 
 function fecharModal() {
@@ -269,5 +285,34 @@ function adicionarOpcoes(razoesSociais) {
     });
 }
 
+function protocoloModal(protocolo) {
+    var selectClientes = document.querySelector('.protocolo-chamado');
+
+    // Limpa opções existentes, se houver
+    selectClientes.innerHTML = '';
+
+    // Adiciona a opção padrão
+    var optionPadrao = document.createElement('option');
+    optionPadrao.textContent = protocolo;
+    selectClientes.appendChild(optionPadrao);
+}
 
 
+function lancarModal(){
+    var origem = document.querySelector('#origem').value;
+    var status = document.querySelector('#status').value;
+    var tipoAtendimento = document.querySelector('#tipoAtendimento').value;
+    var cliente = document.querySelector('#cliente').value;
+    var protocolo = document.querySelector('#protocolo').value;
+    var observacao = document.querySelector('#observacao').value;
+
+    console.log(origem);
+    console.log(status);
+    console.log(tipoAtendimento);
+    console.log(cliente);
+    console.log(protocolo);
+    console.log(observacao);
+
+    
+}
+//document.querySelector('#observacao').value
