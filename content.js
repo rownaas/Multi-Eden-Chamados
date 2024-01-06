@@ -1,5 +1,12 @@
-console.log("carregando");
-
+chrome.storage.local.get(['usuario', 'senha'], function(result) {
+    var usuario = result.usuario;
+    var senha = result.senha;
+  
+    // Faça algo com as informações recuperadas
+    console.log('Usuário:', usuario);
+    console.log('Senha:', senha);
+  });
+  
 // Função para buscar e adicionar o botão
 function buscarEAdicionarBotao() {
     // Procura pelo elemento com a classe 'contact-actions'
@@ -106,23 +113,8 @@ function mostrarModal() {
         </div><div class="col-sm-12">
             <div class="form-group fg-float m-b-30">
                 <div class="fg-line fg-toggled">
-                        <select class="form-control input-lg select-simples" style="">
-                            <option>Atualização</option>
-                            <option>Infodrive</option>
-                            <option>Lentidão</option>
-                            <option>Oscilação</option>
-                            <option>Certificado</option>
-                            <option>Programa do Governo</option>
-                            <option>VPN</option>
-                            <option>Acesso Cloud/Web/Drive</option>
-                            <option>Instalação</option>
-                            <option>Acesso Suporte</option>
-                            <option>Backup</option>
-                            <option>Duvida</option>
-                            <option>Erro Sistema</option>
-                            <option>Impressora</option>
-                            <option>Zabbix</option>
-                            <option>Outros</option>
+                        <select class="form-control input-lg select-simples clientes-eden" style="">
+                            <option>Clientes</option>
                         </select>
                     <label class="fg-label ng-binding">Cliente</label>
                 </div>
@@ -169,6 +161,8 @@ function mostrarModal() {
     if (closeButton) {
         closeButton.addEventListener('click', fecharModal);
     }
+
+    carregarClientes()
 }
 
 function fecharModal() {
@@ -184,3 +178,33 @@ function fecharModal() {
         backdrop.parentElement.removeChild(backdrop);
     }
 }
+
+// Função para carregar o JSON e adicionar opções ao <select>
+function carregarClientes() {
+    adicionarOpcoes(clientes);
+    console.log(clientes);
+}
+
+// Função para adicionar as opções ao <select>
+function adicionarOpcoes(clientes) {
+    var selectClientes = document.querySelector('.clientes-eden');
+
+    // Limpa opções existentes, se houver
+    selectClientes.innerHTML = '';
+
+    // Adiciona a opção padrão
+    var optionPadrao = document.createElement('option');
+    optionPadrao.textContent = 'Clientes';
+    selectClientes.appendChild(optionPadrao);
+
+    // Adiciona as opções do JSON
+    clientes.forEach(function (cliente) {
+        var option = document.createElement('option');
+        option.textContent = cliente.razaoSocial;
+        selectClientes.appendChild(option);
+    });
+}
+
+
+
+
