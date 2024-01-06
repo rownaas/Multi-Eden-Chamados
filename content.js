@@ -1,5 +1,9 @@
 // Recuperar informações de login armazenadas localmente
 var auth;
+var id_user;
+var name_user;
+var login_user;
+
 chrome.storage.local.get(['usuario', 'senha'], function (result) {
     var usuario = result.usuario;
     var senha = result.senha;
@@ -37,6 +41,10 @@ chrome.storage.local.get(['usuario', 'senha'], function (result) {
                 if (data.accessToken) {
                     console.log(data.accessToken);
                     auth = data.accessToken;
+                    name_user = data["data-user"]["userData"]["fullName"];
+                    login_user = data["data-user"]["userData"]["userName"];
+                    id_user = data["data-user"]["userData"]["userId"];
+
                     alert("Parabéns, o seu eden está vinculado com a extensão");
                 } else {
                     throw new Error('Erro: Não foi possível obter o token de acesso.');
@@ -132,15 +140,15 @@ function mostrarModal() {
             <div class="form-group fg-float m-b-30">
                 <div class="fg-line fg-toggled">
                         <select class="form-control input-lg select-simples" id="tipoAtendimento" style="">
-                            <option>Atualização</option>
+                            <option>Atualizacao</option>
                             <option>Infodrive</option>
-                            <option>Lentidão</option>
-                            <option>Oscilação</option>
+                            <option>Lentidao</option>
+                            <option>Oscilacao</option>
                             <option>Certificado</option>
                             <option>Programa do Governo</option>
                             <option>VPN</option>
                             <option>Acesso Cloud/Web/Drive</option>
-                            <option>Instalação</option>
+                            <option>Instalacao</option>
                             <option>Acesso Suporte</option>
                             <option>Backup</option>
                             <option>Duvida</option>
@@ -282,18 +290,18 @@ function adicionarOpcoes(razoesSociais) {
     razoesSociais.forEach(function (razaoSocial) {
         var option = document.createElement('option');
         option.textContent = razaoSocial.razaoSocial;
-    
+
         option.setAttribute('id', razaoSocial.id);
-    
+
         // Verifica se contatos existe e não é null
         if (razaoSocial.contatos && razaoSocial.contatos.length > 0) {
             option.setAttribute('nome', razaoSocial.contatos[0].nome);
             option.setAttribute('telefone', razaoSocial.contatos[0].telefone);
         }
-    
+
         selectClientes.appendChild(option);
     });
-    
+
 }
 
 
@@ -311,7 +319,7 @@ function protocoloModal(protocolo) {
 }
 
 
-function lancarModal(){
+function lancarModal() {
     var origem = document.querySelector('#origem').value;
     var status = document.querySelector('#status').value;
     var tipoAtendimento = document.querySelector('#tipoAtendimento').value;
@@ -326,11 +334,11 @@ function lancarModal(){
     var nome = selectedOption.getAttribute('nome');
     var id = selectedOption.id;
 
-     // Saída esperada: "1" (ou o valor correspondente ao ID do option selecionado)
+    // Saída esperada: "1" (ou o valor correspondente ao ID do option selecionado)
 
     let dataAtual = new Date();
     let dia = dataAtual.getDate();
-    let mes = dataAtual.getMonth() + 1; 
+    let mes = dataAtual.getMonth() + 1;
     let ano = dataAtual.getFullYear();
     let dataCadastro = `${dia.toString().padStart(2, '0')}/${mes.toString().padStart(2, '0')}/${ano}`;
     let dataFechamento = dataCadastro;
@@ -364,9 +372,9 @@ function lancarModal(){
         "documento": "",
         "nomeDocumento": null,
         "tecnicoResponsavel": {
-            "id": 12,
-            "nome": "Luiz Marroni",
-            "login": "luiz.marroni@infowayti.com.br"
+            "id": id_user,
+            "nome": name_user,
+            "login": login_user
         },
         "venda": {
             "produtos": [],
@@ -383,7 +391,31 @@ function lancarModal(){
             "id": id
         }
     };
+    console.log(json_de_novo_chamado);
 
-    
+    var jsonString = JSON.stringify(json_de_novo_chamado);
 
+    console.log(jsonString);
+    console.log(auth);
+
+    var myHeaders = new Headers();
+    myHeaders.append("Content-Type", "application/json");
+
+    var raw = JSON.stringify({
+        "auth": auth,
+        "json": jsonString
+    });
+
+    var requestOptions = {
+        method: 'POST',
+        headers: myHeaders,
+        body: raw,
+        redirect: 'follow'
+    };
+
+    fetch("https://portal.infowaycloud.com.br/api/chamado.php", requestOptions)
+        .then(response => response.text())
+        .then(result => console.log(result))
+        .catch(error => console.log('error', error));
+    console.log(raw);
 }
