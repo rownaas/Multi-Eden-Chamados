@@ -1,8 +1,8 @@
 {
   "manifest_version": 2,
-  "name": "Eden | Multi > Chamados",
-  "version": "1.1",
-  "description": "Extensão desenvolvida para lançar chamados diretamente da multi ao eden",
+  "name": "InfoMonitor & Eden",
+  "version": "1.5",
+  "description": "Extensão desenvolvida para ajudar os suportes com informações do zabbix e para lançar chamados com facilidade",
   "developer": {
     "name": "Luiz Marroni",
     "url": "https://github.com/rownaas"

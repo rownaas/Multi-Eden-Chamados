@@ -49,8 +49,43 @@ chrome.storage.local.get(['usuario', 'senha'], function (result) {
                     name_user = data["data-user"]["userData"]["fullName"];
                     login_user = data["data-user"]["userData"]["userName"];
                     id_user = data["data-user"]["userData"]["userId"];
+                    alert("Parabéns, o seu eden está vinculado com a extensão, Aproveite!");
 
-                    alert("Parabéns, o seu eden está vinculado com a extensão");
+                    //Configurações visuais
+                    var elementoImg = document.evaluate('/html/body/data/section/aside/div/div[1]/img', document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
+                    if (elementoImg) {
+                        elementoImg.setAttribute('src', 'https://infowayti.com.br/assets/images/infowayico.ico');
+                    } else {
+                        console.error('Elemento não encontrado com o XPath fornecido.');
+                    }
+
+                    var elementoImg = document.evaluate('/html/body/data/section/section/div/div[2]/div[3]/div/img', document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
+                    if (elementoImg) {
+                        elementoImg.setAttribute('src', 'https://infowayti.com.br/assets/images/testimonial/logo.png');
+                    } else {
+                        console.error('Elemento não encontrado com o XPath fornecido.');
+                    }
+
+                    var elementoHeader = document.evaluate('/html/body/data/header', document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
+                    if (elementoHeader) {
+                        elementoHeader.style.backgroundColor = 'rgb(255, 118, 0)';
+                    } else {
+                        console.error('Elemento não encontrado com o XPath fornecido.');
+                    }
+
+                    var elementoHeader = document.evaluate('/html/body/data/div/div/div[1]', document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
+                    if (elementoHeader) {
+                        elementoHeader.style.backgroundColor = 'rgb(255, 118, 0)';
+                    } else {
+                        console.error('Elemento não encontrado com o XPath fornecido.');
+                    }
+
+                    var elementoHeader = document.evaluate('/html/body/data/header/div/div[1]/div[2]/a', document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
+                    if (elementoHeader) {
+                        elementoHeader.textContent = 'INFOWAY - CANAL DE SUPORTE';
+                    } else {
+                        console.error('Elemento não encontrado com o XPath fornecido.');
+                    }
                 } else {
                     throw new Error('Erro: Não foi possível obter o token de acesso.');
                 }
@@ -446,13 +481,17 @@ function zabbixModal() {
     // Adiciona o conteúdo HTML fornecido à modal
     var modalHTML = `
     <div modal-render="true" tabindex="-1" role="dialog" class="modal fade ng-isolate-scope in" uib-modal-animation-class="fade" modal-in-class="in" ng-style="{'z-index': 1050 + index*10, display: 'block'}" uib-modal-window="modal-window" size="lg" index="0" animate="animate" modal-animation="true" style="z-index: 1050; display: block;">
-        <div class="modal-dialog modal-lg" ng-class="size ? 'modal-' + size : ''" style="width: 1601px;">
+        <div class="modal-dialog modal-lg" ng-class="size ? 'modal-' + size : ''" style="width: 1601px; height: 1000px;">
             <div class="modal-content" uib-modal-transclude="">
                 <div class="modal-header ng-scope">
                     <h3 class="ng-binding">Zabbix (Em preparação)</h3>
-                </div>                
+                </div>
+                <div class="modal-body ng-scope" id="zabbix" style="max-height: 750px; overflow-y: auto;">
+
+                </div>
                 <div class="modal-footer ng-scope">
                     <button class="btn btn-link ng-binding waves-effect" id="fecharModal">Fechar</button>
+                    <button class="btn btn-link ng-binding waves-effect" id="testeGrafico">TESTE</button>
                 </div>
             </div>
         </div>
@@ -471,4 +510,53 @@ function zabbixModal() {
     if (closeButton) {
         closeButton.addEventListener('click', fecharModal);
     }
+
+    var testeGraficocloseButton = document.querySelector('#testeGrafico');
+    if (testeGraficocloseButton) {
+        testeGraficocloseButton.addEventListener('click', testeGrafico);
+    }
 }
+
+function testeGrafico() {
+    var xpath = "/html/body/data/section/section/div/div[2]/div[5]/div[2]/div[3]/uib-accordion/div/div[2]/div[2]/div/div/form/div[4]/div/div/div/input";
+    var resultado = document.evaluate(xpath, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null);
+    var valorElemento = resultado.singleNodeValue.value;
+
+    console.log(valorElemento);
+
+    var myHeaders = new Headers();
+    myHeaders.append("Content-Type", "application/x-www-form-urlencoded");
+
+    var urlencoded = new URLSearchParams();
+    urlencoded.append("porta", valorElemento);
+
+    var requestOptions = {
+        method: 'POST',
+        headers: myHeaders,
+        body: urlencoded,
+        redirect: 'follow'
+    };
+
+    fetch("https://portal.infowaycloud.com.br/api/graph_zabbix.php", requestOptions)
+        .then(response => response.json())
+        .then(result => {
+            // Itera sobre cada gráfico na resposta
+            result.forEach(graph => {
+                // Cria uma imagem
+                var img = document.createElement("img");
+
+                // Define a fonte da imagem como os dados base64 do gráfico
+                img.src = 'data:image/png;base64,' + graph.imageData;
+
+                // Define largura e altura da imagem
+                img.width = 1500;
+                img.height = 500;
+
+                // Adiciona a imagem ao elemento com id "zabbix"
+                document.getElementById("zabbix").appendChild(img);
+            });
+        })
+        .catch(error => console.log('error', error));
+}
+
+
