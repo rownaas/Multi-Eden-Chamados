@@ -4,6 +4,8 @@ var id_user;
 var name_user;
 var login_user;
 
+var log = false;
+
 chrome.storage.local.get(['usuario', 'senha'], function (result) {
     var usuario = result.usuario;
     var senha = result.senha;
@@ -15,13 +17,17 @@ chrome.storage.local.get(['usuario', 'senha'], function (result) {
         chrome.runtime.sendMessage({ openPopup: true });
     } else {
         // Usuário e senha estão presentes, faça algo com as informações recuperadas
-        console.log('Usuário:', usuario);
-        console.log('Senha:', senha);
+        if (log) {
+            console.log('Usuário:', usuario);
+            console.log('Senha:', senha);
+        }
+
         const url = "https://portal.infowaycloud.com.br/api/auth.php";
         const dados = {
             login: usuario,
             senha: senha
         };
+
 
         fetch(url, {
             method: 'POST',
@@ -39,7 +45,6 @@ chrome.storage.local.get(['usuario', 'senha'], function (result) {
             .then(data => {
                 // Aqui você verifica se a resposta contém o token de acesso
                 if (data.accessToken) {
-                    console.log(data.accessToken);
                     auth = data.accessToken;
                     name_user = data["data-user"]["userData"]["fullName"];
                     login_user = data["data-user"]["userData"]["userName"];
@@ -64,21 +69,22 @@ function buscarEAdicionarBotao() {
 
     // Verifica se o elemento foi encontrado e se a função não foi executada anteriormente
     if (contactActions && !buscarEAdicionarBotao.executado) {
-        // Cria um novo botão
-        var newButton = document.createElement('span');
 
-        // Adiciona os atributos ao elemento
-        newButton.title = "MANDAR CHAMADO (EDEN)";
-        newButton.className = "icone no-mobile i-finalizar";
-        newButton.style = ""; // Adicione o estilo desejado, se necessário
+        var lancarChamado = document.createElement('span');
+        lancarChamado.title = "MANDAR CHAMADO (EDEN)";
+        lancarChamado.className = "icone no-mobile i-finalizar";
+        lancarChamado.style = "";
+        lancarChamado.innerHTML = '<i class="tm-icon zmdi zmdi-plus"></i>';
+        contactActions.appendChild(lancarChamado);
+        lancarChamado.addEventListener('click', mostrarModal);
 
-        // Adiciona o conteúdo HTML ao elemento
-        newButton.innerHTML = '<i class="tm-icon zmdi zmdi-plus"></i>';
-
-        // Adiciona o novo botão à quinta lista (índice 4)
-        contactActions.appendChild(newButton);
-
-        newButton.addEventListener('click', mostrarModal);
+        var zabbixModalBtn = document.createElement('span');
+        zabbixModalBtn.title = "VERIFICAR ZABBIX PELA PORTA";
+        zabbixModalBtn.className = "icone no-mobile i-finalizar";
+        zabbixModalBtn.style = "";
+        zabbixModalBtn.innerHTML = '<i class="zmdi zmdi-memory"></i>';
+        contactActions.appendChild(zabbixModalBtn);
+        zabbixModalBtn.addEventListener('click', zabbixModal);
 
         // Marca a função como executada
         buscarEAdicionarBotao.executado = true;
@@ -87,8 +93,7 @@ function buscarEAdicionarBotao() {
 
 // Espera até que a página esteja completamente carregada
 window.addEventListener('load', function () {
-    console.log("carregou");
-
+    console.log(".");
     // Busca e adiciona o botão inicialmente
     buscarEAdicionarBotao();
 
@@ -145,14 +150,14 @@ function mostrarModal() {
                             <option>Lentidao</option>
                             <option>Oscilacao</option>
                             <option>Certificado</option>
-                            <option>Programa do Governo</option>
-                            <option>VPN</option>
-                            <option>Acesso Cloud/Web/Drive</option>
+                            <option>ProgramaDeGoverno</option>
+                            <option>Vpn</option>
+                            <option>AcessoCloud</option>
                             <option>Instalacao</option>
-                            <option>Acesso Suporte</option>
+                            <option>AcessoSuporte</option>
                             <option>Backup</option>
                             <option>Duvida</option>
-                            <option>Erro Sistema</option>
+                            <option>ErroSistema</option>
                             <option>Impressora</option>
                             <option>Zabbix</option>
                             <option>Outros</option>
@@ -191,7 +196,8 @@ function mostrarModal() {
             </div>
         </div></div>
 </div>
-<div class="modal-footer ng-scope">    
+<div class="modal-footer ng-scope">
+    <button class="btn btn-link ng-binding waves-effect" id="baixarPDFBtn">Baixar TXT (Em Testes)</button>
     <button class="btn btn-link ng-binding waves-effect" id="fecharModal" ng-click="onModalCancelar()">Fechar</button>
     <button class="btn btn-link ng-binding waves-effect" id="lancarModal" ng-click="onModalInserir()">Enviar</button>
 </div></div></div>
@@ -217,6 +223,10 @@ function mostrarModal() {
         lancarButton.addEventListener('click', lancarModal);
     }
 
+    var baixarPDFBtn = document.querySelector('#baixarPDFBtn');
+    if (baixarPDFBtn) {
+        baixarPDFBtn.addEventListener('click', baixarPDF);
+    }
     carregarClientes();
 
     const xpath = "/html/body/data/section/section/div/div[2]/div[5]/div[2]/div[3]/div/div[2]/div[1]";
@@ -224,11 +234,22 @@ function mostrarModal() {
 
     // Obtenha o valor do XPathResult
     const Protocolo = xpathResult.stringValue;
-
-    // Exiba o valor
-    console.log(Protocolo);
-
     protocoloModal(Protocolo);
+}
+
+function baixarPDF() {
+    var mensagens = document.querySelectorAll('.content-center');
+    var primeiroItemOuterText = mensagens[0].outerText;
+    console.log(primeiroItemOuterText);
+
+    const blob = new Blob([primeiroItemOuterText], { type: 'text/plain' });
+    const urlBlob = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = urlBlob;
+    link.download = "chat.txt";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
 }
 
 function fecharModal() {
@@ -264,8 +285,10 @@ function carregarClientes() {
         .then(data => {
             // Verifica se a resposta contém a propriedade 'informacoes'
             if (data.informacoes) {
-                console.log('Informações dos clientes:');
-                console.table(data.informacoes);
+                if (log) {
+                    console.log('Informações dos clientes:');
+                    console.table(data.informacoes);
+                }
                 adicionarOpcoes(data.informacoes);
             } else {
                 throw new Error('Erro: Não foi possível obter a lista de razões sociais.');
@@ -326,16 +349,11 @@ function lancarModal() {
     var cliente = document.querySelector('#cliente').value;
     var protocolo = document.querySelector('#protocolo').value;
     var observacao = document.querySelector('#observacao').value;
-
     var clienteSelect = document.querySelector('#cliente');
     var selectedOption = clienteSelect.options[clienteSelect.selectedIndex];
-
     var telefone = selectedOption.getAttribute('telefone');
     var nome = selectedOption.getAttribute('nome');
     var id = selectedOption.id;
-
-    // Saída esperada: "1" (ou o valor correspondente ao ID do option selecionado)
-
     let dataAtual = new Date();
     let dia = dataAtual.getDate();
     let mes = dataAtual.getMonth() + 1;
@@ -343,21 +361,25 @@ function lancarModal() {
     let dataCadastro = `${dia.toString().padStart(2, '0')}/${mes.toString().padStart(2, '0')}/${ano}`;
     let dataFechamento = dataCadastro;
 
+    //Mensagens
+    var mensagens = document.querySelectorAll('.content-center');
+    var primeiroItemOuterText = mensagens[0].outerText;
+    var base64Mensangens = btoa(primeiroItemOuterText);
 
-
-    console.log(origem);
-    console.log(status);
-    console.log(tipoAtendimento);
-    console.log(cliente);
-    console.log(protocolo);
-    console.log(observacao);
-
-    console.log(nome);
-    console.log(telefone);
-    console.log(id);
-
-    console.log(dataCadastro);
-    console.log(dataFechamento);
+    if (log) {
+        console.log(origem);
+        console.log(status);
+        console.log(tipoAtendimento);
+        console.log(cliente);
+        console.log(protocolo);
+        console.log(observacao);
+        console.log(nome);
+        console.log(telefone);
+        console.log(id);
+        console.log(dataCadastro);
+        console.log(dataFechamento);
+        console.log(primeiroItemOuterText);
+    }
 
     var json_de_novo_chamado = {
         "id": 0,
@@ -370,7 +392,7 @@ function lancarModal() {
         "protocolo": protocolo,
         "observacao": observacao,
         "documento": "",
-        "nomeDocumento": null,
+        "nomeDocumento": "chat.txt",
         "tecnicoResponsavel": {
             "id": id_user,
             "nome": name_user,
@@ -391,19 +413,16 @@ function lancarModal() {
             "id": id
         }
     };
-    console.log(json_de_novo_chamado);
 
     var jsonString = JSON.stringify(json_de_novo_chamado);
-
-    console.log(jsonString);
-    console.log(auth);
 
     var myHeaders = new Headers();
     myHeaders.append("Content-Type", "application/json");
 
     var raw = JSON.stringify({
         "auth": auth,
-        "json": jsonString
+        "json": jsonString,
+        "file": base64Mensangens
     });
 
     var requestOptions = {
@@ -417,4 +436,39 @@ function lancarModal() {
         .then(response => response.text())
         .then(result => alert(result), fecharModal())
         .catch(error => alert('error', error));
+}
+
+
+
+//ZABBIX
+
+function zabbixModal() {
+    // Adiciona o conteúdo HTML fornecido à modal
+    var modalHTML = `
+    <div modal-render="true" tabindex="-1" role="dialog" class="modal fade ng-isolate-scope in" uib-modal-animation-class="fade" modal-in-class="in" ng-style="{'z-index': 1050 + index*10, display: 'block'}" uib-modal-window="modal-window" size="lg" index="0" animate="animate" modal-animation="true" style="z-index: 1050; display: block;">
+        <div class="modal-dialog modal-lg" ng-class="size ? 'modal-' + size : ''" style="width: 1601px;">
+            <div class="modal-content" uib-modal-transclude="">
+                <div class="modal-header ng-scope">
+                    <h3 class="ng-binding">Zabbix (Em preparação)</h3>
+                </div>                
+                <div class="modal-footer ng-scope">
+                    <button class="btn btn-link ng-binding waves-effect" id="fecharModal">Fechar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    `;
+
+    var outra = `
+    <div uib-modal-animation-class="fade" modal-in-class="in" ng-style="{'z-index': 1040 + (index &amp;&amp; 1 || 0) + index*10}" uib-modal-backdrop="modal-backdrop" modal-animation="true" class="fade modal-backdrop in" style="z-index: 1040;"></div>
+    `;
+
+    // Adiciona o modal ao corpo do documento
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
+    document.body.insertAdjacentHTML('beforeend', outra);
+
+    var closeButton = document.querySelector('#fecharModal');
+    if (closeButton) {
+        closeButton.addEventListener('click', fecharModal);
+    }
 }
