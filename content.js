@@ -400,9 +400,6 @@ function lancarModal() {
     let dataFechamento = dataCadastro;
 
     //Mensagens
-    var mensagens = document.querySelectorAll('.content-center');
-    var primeiroItemOuterText = mensagens[0].outerText;
-    var base64Mensangens = btoa(primeiroItemOuterText);
 
     if (log) {
         console.log(origem);
@@ -416,7 +413,6 @@ function lancarModal() {
         console.log(id);
         console.log(dataCadastro);
         console.log(dataFechamento);
-        console.log(primeiroItemOuterText);
     }
 
     var json_de_novo_chamado = {
@@ -459,8 +455,7 @@ function lancarModal() {
 
     var raw = JSON.stringify({
         "auth": auth,
-        "json": jsonString,
-        "file": base64Mensangens
+        "json": jsonString
     });
 
     var requestOptions = {
