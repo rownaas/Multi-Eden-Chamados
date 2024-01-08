@@ -49,6 +49,7 @@ chrome.storage.local.get(['usuario', 'senha'], function (result) {
                     name_user = data["data-user"]["userData"]["fullName"];
                     login_user = data["data-user"]["userData"]["userName"];
                     id_user = data["data-user"]["userData"]["userId"];
+
                     alert("Parabéns, o seu eden está vinculado com a extensão, Aproveite!");
 
                     //Configurações visuais
@@ -90,7 +91,9 @@ chrome.storage.local.get(['usuario', 'senha'], function (result) {
                     throw new Error('Erro: Não foi possível obter o token de acesso.');
                 }
             })
-            .catch(error => alert('Erro, usuario invalido\n', error));
+            .catch(error => {
+                alert('Erro, usuário inválido, a extensão vai parar de executar, favor verificar credenciais\n', error);
+            });
     }
 });
 
@@ -490,8 +493,9 @@ function zabbixModal() {
 
                 </div>
                 <div class="modal-footer ng-scope">
+                    <button class="btn btn-link ng-binding waves-effect" id="usuariosZabbix">Usuarios</button>
+                    <button class="btn btn-link ng-binding waves-effect" id="testeGrafico">Graficos</button>
                     <button class="btn btn-link ng-binding waves-effect" id="fecharModal">Fechar</button>
-                    <button class="btn btn-link ng-binding waves-effect" id="testeGrafico">TESTE</button>
                 </div>
             </div>
         </div>
@@ -515,20 +519,55 @@ function zabbixModal() {
     if (testeGraficocloseButton) {
         testeGraficocloseButton.addEventListener('click', testeGrafico);
     }
+
+    var usuariosZabbixBtn = document.querySelector('#usuariosZabbix');
+    if (usuariosZabbixBtn) {
+        usuariosZabbixBtn.addEventListener('click', usuariosZabbix);
+    }
 }
 
-function testeGrafico() {
+function carregarSpinner() {
+    var img = document.createElement("img");
+    img.src = 'https://i.gifer.com/origin/34/34338d26023e5515f6cc8969aa027bca.gif';
+    img.id = 'spinner';
+    img.width = 250;
+    img.height = 250;
+    img.style.margin = 'auto';
+    document.getElementById("zabbix").appendChild(img);
+}
+
+function retirarSpinner() {
+    var elementoImg = document.getElementById('spinner');
+    if (elementoImg) {
+        elementoImg.remove();
+    }
+}
+
+function removerConteudo() {
+    var divContainer = document.getElementById('zabbix');
+    if (divContainer) {
+        divContainer.innerHTML = '';
+    }
+}
+
+function retornarPorta() {
     var xpath = "/html/body/data/section/section/div/div[2]/div[5]/div[2]/div[3]/uib-accordion/div/div[2]/div[2]/div/div/form/div[4]/div/div/div/input";
     var resultado = document.evaluate(xpath, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null);
     var valorElemento = resultado.singleNodeValue.value;
+    return valorElemento;
+}
 
-    console.log(valorElemento);
+function testeGrafico() {
+    removerConteudo()
+    carregarSpinner()
+    var portaZabbix = retornarPorta();
+    console.log(portaZabbix);
 
     var myHeaders = new Headers();
     myHeaders.append("Content-Type", "application/x-www-form-urlencoded");
 
     var urlencoded = new URLSearchParams();
-    urlencoded.append("porta", valorElemento);
+    urlencoded.append("porta", portaZabbix);
 
     var requestOptions = {
         method: 'POST',
@@ -540,23 +579,46 @@ function testeGrafico() {
     fetch("https://portal.infowaycloud.com.br/api/graph_zabbix.php", requestOptions)
         .then(response => response.json())
         .then(result => {
-            // Itera sobre cada gráfico na resposta
+            retirarSpinner();
             result.forEach(graph => {
-                // Cria uma imagem
                 var img = document.createElement("img");
-
-                // Define a fonte da imagem como os dados base64 do gráfico
                 img.src = 'data:image/png;base64,' + graph.imageData;
-
-                // Define largura e altura da imagem
                 img.width = 1500;
                 img.height = 500;
-
-                // Adiciona a imagem ao elemento com id "zabbix"
                 document.getElementById("zabbix").appendChild(img);
             });
         })
         .catch(error => console.log('error', error));
 }
 
+function usuariosZabbix() {
+    removerConteudo()
+    carregarSpinner()
+    var portaZabbix = retornarPorta();
 
+    var myHeaders = new Headers();
+    myHeaders.append("Content-Type", "application/x-www-form-urlencoded");
+
+    var urlencoded = new URLSearchParams();
+    urlencoded.append("porta", portaZabbix);
+
+    console.log(portaZabbix);
+
+    var requestOptions = {
+        method: 'POST',
+        headers: myHeaders,
+        body: urlencoded,
+        redirect: 'follow'
+    };
+
+    fetch("https://portal.infowaycloud.com.br/api/host_usuarios.php", requestOptions)
+        .then(response => response.json())
+        .then(result => {
+            retirarSpinner();
+            console.log(result[0].result[0].lastvalue)
+            var a = document.createElement("h2");
+            a.textContent = result[0].result[0].lastvalue;
+            document.getElementById("zabbix").appendChild(a);
+        })
+        .catch(error => console.log('error', error));
+}
