@@ -1,19 +1,18 @@
-// Recuperar informações de login armazenadas localmente
 var auth;
 var id_user;
 var name_user;
 var login_user;
-
 var log = false;
+var logado = false;
 
-chrome.storage.local.get(['usuario', 'senha'], function (result) {
+chrome.storage.local.get(['usuario', 'senha', 'naoMostrar'], function (result) {
     var usuario = result.usuario;
     var senha = result.senha;
 
     // Verificar se usuário e senha são nulos ou indefinidos
     if (usuario === null || senha === null || typeof usuario === 'undefined' || typeof senha === 'undefined') {
         // Exibir mensagem pedindo para configurar usuário e senha
-        alert('Por favor, configure seu usuário e senha dentro da extensão do eden');
+        modalErro();
         chrome.runtime.sendMessage({ openPopup: true });
     } else {
         // Usuário e senha estão presentes, faça algo com as informações recuperadas
@@ -50,7 +49,11 @@ chrome.storage.local.get(['usuario', 'senha'], function (result) {
                     login_user = data["data-user"]["userData"]["userName"];
                     id_user = data["data-user"]["userData"]["userId"];
 
-                    alert("Parabéns, o seu eden está vinculado com a extensão, Aproveite!");
+                    logado = true;
+
+                    if (!result.naoMostrar) {
+                        modalBenvindo()
+                    }
 
                     //Configurações visuais
                     var elementoImg = document.evaluate('/html/body/data/section/aside/div/div[1]/img', document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
@@ -92,12 +95,26 @@ chrome.storage.local.get(['usuario', 'senha'], function (result) {
                 }
             })
             .catch(error => {
-                alert('Erro, usuário inválido, a extensão vai parar de executar, favor verificar credenciais\n', error);
+                modalErro();
             });
     }
 });
 
 
+
+
+// Espera até que a página esteja completamente carregada
+window.addEventListener('load', function () {
+    console.log(".");
+    // Busca e adiciona o botão inicialmente
+    buscarEAdicionarBotao();
+
+    // Adiciona um ouvinte de evento de clique à página
+    document.addEventListener('click', function () {
+        // Tenta buscar e adicionar o botão novamente quando o usuário clicar em algo na página
+        buscarEAdicionarBotao();
+    });
+});
 
 
 // Função para buscar e adicionar o botão
@@ -129,123 +146,109 @@ function buscarEAdicionarBotao() {
     }
 }
 
-// Espera até que a página esteja completamente carregada
-window.addEventListener('load', function () {
-    console.log(".");
-    // Busca e adiciona o botão inicialmente
-    buscarEAdicionarBotao();
-
-    // Adiciona um ouvinte de evento de clique à página
-    document.addEventListener('click', function () {
-        // Tenta buscar e adicionar o botão novamente quando o usuário clicar em algo na página
-        buscarEAdicionarBotao();
-    });
-});
-
-
 
 function mostrarModal() {
     // Adiciona o conteúdo HTML fornecido à modal
     var modalHTML = `
-    <div modal-render="true" tabindex="-1" role="dialog" class="modal fade ng-isolate-scope in" uib-modal-animation-class="fade" modal-in-class="in" ng-style="{'z-index': 1050 + index*10, display: 'block'}" uib-modal-window="modal-window" index="0" animate="animate" modal-animation="true" style="z-index: 1050; display: block;">
-    <div class="modal-dialog" ng-class="size ? 'modal-' + size : ''"><div class="modal-content" uib-modal-transclude=""><div class="modal-header ng-scope">
-    <h3 class="ng-binding">Lançar Chamado</h3>
-</div>
-<div class="modal-body ng-scope">
-    <div class="row">
-        <div class="col-sm-12">
-            <div class="form-group fg-float m-b-30">
-                <div class="fg-line fg-toggled">
-                        <select class="form-control input-lg select-simples" id="origem" style="">
-                            <option>Whatsapp</option>
-                            <option>Atendimento Telefonico</option>
-                            <option>Atendimento Presencial</option>
-                            <option>Atendimento Balcão</option>
-                        </select>
-                    <label class="fg-label ng-binding">Origem</label>
-                </div>
-            </div>
-        </div>
-        <div class="col-sm-12">
-            <div class="form-group fg-float m-b-30">
-                <div class="fg-line fg-toggled">
-                        <select class="form-control input-lg select-simples" id="status" style="">
-                            <option>Fechado</option>
-                            <option>Aberto</option>
-                            <option>Pendente</option>
-                            <option>Aguardando Peça</option>
-                        </select>
-                    <label class="fg-label ng-binding">Status</label>
-                </div>
-            </div>
-        </div>
-    <div class="col-sm-12">
-            <div class="form-group fg-float m-b-30">
-                <div class="fg-line fg-toggled">
-                        <select class="form-control input-lg select-simples" id="tipoAtendimento" style="">
-                            <option>Atualizacao</option>
-                            <option>Infodrive</option>
-                            <option>Lentidao</option>
-                            <option>Oscilacao</option>
-                            <option>Certificado</option>
-                            <option>ProgramaDeGoverno</option>
-                            <option>Vpn</option>
-                            <option>AcessoCloud</option>
-                            <option>Instalacao</option>
-                            <option>AcessoSuporte</option>
-                            <option>Backup</option>
-                            <option>Duvida</option>
-                            <option>ErroSistema</option>
-                            <option>Impressora</option>
-                            <option>Zabbix</option>
-                            <option>Outros</option>
-                        </select>
-                    <label class="fg-label ng-binding">Tipo Atendimento</label>
-                </div>
-            </div>
-        </div><div class="col-sm-12">
-            <div class="form-group fg-float m-b-30">
-                <div class="fg-line fg-toggled">
-                        <select class="form-control input-lg select-simples clientes-eden" id="cliente" style="">
-                            <option>Clientes</option>
-                        </select>
-                    <label class="fg-label ng-binding">Cliente</label>
-                </div>
-            </div>
-        </div><div class="col-sm-12">
-            <div class="form-group fg-float m-b-30">
-                <div class="fg-line fg-toggled">
-                    <select class="form-control input-lg select-simples protocolo-chamado" id="protocolo">
-                        <option value="0"></option>
-                    </select>
-                    <label class="fg-label ng-binding">Protocolo</label>
-                </div>
-            </div>
-        </div><div class="col-sm-12">
-            <div class="form-group fg-float m-b-30">
-                <div class="form-group fg-float ng-scope" ng-if="campo.tipoDado == 'TEXTO'">
-                    <div class="fg-line ng-scope" ng-if="!campo.alternativas &amp;&amp; !campo.integracaoLista">
-                        <div class="fg-line fg-toggled">
-                            <input type="text" class="form-control fg-input input-lg" id="observacao" style="">
-                            <label class="fg-label ng-binding">Observação</label>
-                        </div>
+        <div modal-render="true" tabindex="-1" role="dialog" class="modal fade ng-isolate-scope in" uib-modal-animation-class="fade" modal-in-class="in" ng-style="{'z-index': 1050 + index*10, display: 'block'}" uib-modal-window="modal-window" index="0" animate="animate" modal-animation="true" style="z-index: 1050; display: block;">
+        <div class="modal-dialog" ng-class="size ? 'modal-' + size : ''"><div class="modal-content" uib-modal-transclude=""><div class="modal-header ng-scope">
+        <h3 class="ng-binding">Lançar Chamado</h3>
+    </div>
+    <div class="modal-body ng-scope">
+        <div class="row">
+            <div class="col-sm-12">
+                <div class="form-group fg-float m-b-30">
+                    <div class="fg-line fg-toggled">
+                            <select class="form-control input-lg select-simples" id="origem" style="">
+                                <option>Whatsapp</option>
+                                <option>Atendimento Telefonico</option>
+                                <option>Atendimento Presencial</option>
+                                <option>Atendimento Balcão</option>
+                            </select>
+                        <label class="fg-label ng-binding">Origem</label>
                     </div>
                 </div>
             </div>
-        </div></div>
-</div>
-<div class="modal-footer ng-scope">
-    <button class="btn btn-link ng-binding waves-effect" id="baixarPDFBtn">Baixar TXT (Em Testes)</button>
-    <button class="btn btn-link ng-binding waves-effect" id="fecharModal" ng-click="onModalCancelar()">Fechar</button>
-    <button class="btn btn-link ng-binding waves-effect" id="lancarModal" ng-click="onModalInserir()">Enviar</button>
-</div></div></div>
-</div>
-    `;
+            <div class="col-sm-12">
+                <div class="form-group fg-float m-b-30">
+                    <div class="fg-line fg-toggled">
+                            <select class="form-control input-lg select-simples" id="status" style="">
+                                <option>Fechado</option>
+                                <option>Aberto</option>
+                                <option>Pendente</option>
+                                <option>Aguardando Peça</option>
+                            </select>
+                        <label class="fg-label ng-binding">Status</label>
+                    </div>
+                </div>
+            </div>
+        <div class="col-sm-12">
+                <div class="form-group fg-float m-b-30">
+                    <div class="fg-line fg-toggled">
+                            <select class="form-control input-lg select-simples" id="tipoAtendimento" style="">
+                                <option>Atualizacao</option>
+                                <option>Infodrive</option>
+                                <option>Lentidao</option>
+                                <option>Oscilacao</option>
+                                <option>Certificado</option>
+                                <option>ProgramaDeGoverno</option>
+                                <option>Vpn</option>
+                                <option>AcessoCloud</option>
+                                <option>Instalacao</option>
+                                <option>AcessoSuporte</option>
+                                <option>Backup</option>
+                                <option>Duvida</option>
+                                <option>ErroSistema</option>
+                                <option>Impressora</option>
+                                <option>Zabbix</option>
+                                <option>Outros</option>
+                            </select>
+                        <label class="fg-label ng-binding">Tipo Atendimento</label>
+                    </div>
+                </div>
+            </div><div class="col-sm-12">
+                <div class="form-group fg-float m-b-30">
+                    <div class="fg-line fg-toggled">
+                            <select class="form-control input-lg select-simples clientes-eden" id="cliente" style="">
+                                <option id="clientePadrao">Clientes</option>
+                            </select>
+                        <label class="fg-label ng-binding">Cliente</label>
+                    </div>
+                </div>
+            </div><div class="col-sm-12">
+                <div class="form-group fg-float m-b-30">
+                    <div class="fg-line fg-toggled">
+                        <select class="form-control input-lg select-simples protocolo-chamado" id="protocolo">
+                            <option value="0"></option>
+                        </select>
+                        <label class="fg-label ng-binding">Protocolo</label>
+                    </div>
+                </div>
+            </div><div class="col-sm-12">
+                <div class="form-group fg-float m-b-30">
+                    <div class="form-group fg-float ng-scope" ng-if="campo.tipoDado == 'TEXTO'">
+                        <div class="fg-line ng-scope" ng-if="!campo.alternativas &amp;&amp; !campo.integracaoLista">
+                            <div class="fg-line fg-toggled">
+                                <input type="text" class="form-control fg-input input-lg" id="observacao" style="">
+                                <label class="fg-label ng-binding">Observação</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div></div>
+    </div>
+    <div class="modal-footer ng-scope">
+        <button class="btn btn-link ng-binding waves-effect" id="baixarPDFBtn">Baixar TXT (Em Testes)</button>
+        <button class="btn btn-link ng-binding waves-effect" id="fecharModal" ng-click="onModalCancelar()">Fechar</button>
+        <button class="btn btn-link ng-binding waves-effect" id="lancarModal" ng-click="onModalInserir()">Enviar</button>
+    </div></div></div>
+    </div>
+        `;
 
     var outra = `
-    <div uib-modal-animation-class="fade" modal-in-class="in" ng-style="{'z-index': 1040 + (index &amp;&amp; 1 || 0) + index*10}" uib-modal-backdrop="modal-backdrop" modal-animation="true" class="fade modal-backdrop in" style="z-index: 1040;"></div>
-    
-    `;
+        <div uib-modal-animation-class="fade" modal-in-class="in" ng-style="{'z-index': 1040 + (index &amp;&amp; 1 || 0) + index*10}" uib-modal-backdrop="modal-backdrop" modal-animation="true" class="fade modal-backdrop in" style="z-index: 1040;"></div>
+        
+        `;
 
     // Adiciona a modal ao corpo do documento
     document.body.insertAdjacentHTML('beforeend', modalHTML);
@@ -269,8 +272,6 @@ function mostrarModal() {
 
     const xpath = "/html/body/data/section/section/div/div[2]/div[5]/div[2]/div[3]/div/div[2]/div[1]";
     const xpathResult = document.evaluate(xpath, document, null, XPathResult.STRING_TYPE, null);
-
-    // Obtenha o valor do XPathResult
     const Protocolo = xpathResult.stringValue;
     protocoloModal(Protocolo);
 }
@@ -291,7 +292,6 @@ function baixarPDF() {
 }
 
 function fecharModal() {
-    // Remove a modal e o backdrop do corpo do documento
     var modal = document.querySelector('.modal');
     var backdrop = document.querySelector('.modal-backdrop');
 
@@ -302,6 +302,25 @@ function fecharModal() {
     if (backdrop) {
         backdrop.parentElement.removeChild(backdrop);
     }
+}
+
+function fecharAlerta() {
+    var modal = document.getElementById('modal');
+    modal.parentNode.removeChild(modal);
+    var overlay = document.getElementById('modal-backdrop');
+    overlay.parentNode.removeChild(overlay);
+}
+
+
+function naoMostrar() {
+    var modal = document.getElementById('modal');
+    modal.parentNode.removeChild(modal);
+    var overlay = document.getElementById('modal-backdrop');
+    overlay.parentNode.removeChild(overlay);
+
+    chrome.storage.local.set({ 'naoMostrar': true }, function () {
+
+    });
 }
 
 // Função para carregar o JSON e adicionar opções ao <select>
@@ -338,6 +357,7 @@ function carregarClientes() {
 // Função para adicionar as opções ao <select>
 function adicionarOpcoes(razoesSociais) {
     var selectClientes = document.querySelector('.clientes-eden');
+    var cnpjCliente = retornarCnpj();
 
     // Limpa opções existentes, se houver
     selectClientes.innerHTML = '';
@@ -358,12 +378,21 @@ function adicionarOpcoes(razoesSociais) {
         if (razaoSocial.contatos && razaoSocial.contatos.length > 0) {
             option.setAttribute('nome', razaoSocial.contatos[0].nome);
             option.setAttribute('telefone', razaoSocial.contatos[0].telefone);
+            option.setAttribute('cnpj', razaoSocial.cnpj);
         }
 
         selectClientes.appendChild(option);
     });
 
+    // Define o valor do primeiro option com base no cnpjCliente
+    if (cnpjCliente) {
+        var primeiroOption = selectClientes.querySelector('option[cnpj="' + cnpjCliente + '"]');
+        if (primeiroOption) {
+            selectClientes.value = primeiroOption.value;
+        }
+    }
 }
+
 
 
 
@@ -478,28 +507,28 @@ function lancarModal() {
 function zabbixModal() {
     // Adiciona o conteúdo HTML fornecido à modal
     var modalHTML = `
-    <div modal-render="true" tabindex="-1" role="dialog" class="modal fade ng-isolate-scope in" uib-modal-animation-class="fade" modal-in-class="in" ng-style="{'z-index': 1050 + index*10, display: 'block'}" uib-modal-window="modal-window" size="lg" index="0" animate="animate" modal-animation="true" style="z-index: 1050; display: block;">
-        <div class="modal-dialog modal-lg" ng-class="size ? 'modal-' + size : ''" style="width: 1601px; height: 1000px;">
-            <div class="modal-content" uib-modal-transclude="">
-                <div class="modal-header ng-scope">
-                    <h3 class="ng-binding">Zabbix (Em preparação)</h3>
-                </div>
-                <div class="modal-body ng-scope" id="zabbix" style="max-height: 750px; overflow-y: auto;">
+        <div modal-render="true" tabindex="-1" role="dialog" class="modal fade ng-isolate-scope in" uib-modal-animation-class="fade" modal-in-class="in" ng-style="{'z-index': 1050 + index*10, display: 'block'}" uib-modal-window="modal-window" size="lg" index="0" animate="animate" modal-animation="true" style="z-index: 1050; display: block;">
+            <div class="modal-dialog modal-lg" ng-class="size ? 'modal-' + size : ''" style="width: 1601px; height: 1000px;">
+                <div class="modal-content" uib-modal-transclude="">
+                    <div class="modal-header ng-scope">
+                        <h3 class="ng-binding">Zabbix (Em preparação)</h3>
+                    </div>
+                    <div class="modal-body ng-scope" id="zabbix" style="max-height: 750px; overflow-y: auto;">
 
-                </div>
-                <div class="modal-footer ng-scope">
-                    <button class="btn btn-link ng-binding waves-effect" id="usuariosZabbix">Usuarios</button>
-                    <button class="btn btn-link ng-binding waves-effect" id="testeGrafico">Graficos</button>
-                    <button class="btn btn-link ng-binding waves-effect" id="fecharModal">Fechar</button>
+                    </div>
+                    <div class="modal-footer ng-scope">
+                        <button class="btn btn-link ng-binding waves-effect" id="usuariosZabbix">Usuarios</button>
+                        <button class="btn btn-link ng-binding waves-effect" id="testeGrafico">Graficos</button>
+                        <button class="btn btn-link ng-binding waves-effect" id="fecharModal">Fechar</button>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
-    `;
+        `;
 
     var outra = `
-    <div uib-modal-animation-class="fade" modal-in-class="in" ng-style="{'z-index': 1040 + (index &amp;&amp; 1 || 0) + index*10}" uib-modal-backdrop="modal-backdrop" modal-animation="true" class="fade modal-backdrop in" style="z-index: 1040;"></div>
-    `;
+        <div uib-modal-animation-class="fade" modal-in-class="in" ng-style="{'z-index': 1040 + (index &amp;&amp; 1 || 0) + index*10}" uib-modal-backdrop="modal-backdrop" modal-animation="true" class="fade modal-backdrop in" style="z-index: 1040;"></div>
+        `;
 
     // Adiciona o modal ao corpo do documento
     document.body.insertAdjacentHTML('beforeend', modalHTML);
@@ -547,6 +576,13 @@ function removerConteudo() {
 
 function retornarPorta() {
     var xpath = "/html/body/data/section/section/div/div[2]/div[5]/div[2]/div[3]/uib-accordion/div/div[2]/div[2]/div/div/form/div[4]/div/div/div/input";
+    var resultado = document.evaluate(xpath, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null);
+    var valorElemento = resultado.singleNodeValue.value;
+    return valorElemento;
+}
+
+function retornarCnpj(){
+    var xpath = "/html/body/data/section/section/div/div[2]/div[5]/div[2]/div[3]/uib-accordion/div/div[2]/div[2]/div/div/form/div[2]/div/div/div/input";
     var resultado = document.evaluate(xpath, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null);
     var valorElemento = resultado.singleNodeValue.value;
     return valorElemento;
@@ -617,3 +653,79 @@ function usuariosZabbix() {
         })
         .catch(error => console.log('error', error));
 }
+
+
+//Modal de alerta
+
+function modalBenvindo() {
+    var modalHTML = `
+        <div class="sweet-alert showSweetAlert visible" id="modal" bis_skin_checked="1" data-has-cancel-button="false" data-has-confirm-button="true" data-allow-ouside-click="false" data-has-done-function="false" data-timer="null" style="display: block; margin-top: -150px;">
+    <div class="icon error animateErrorIcon" bis_skin_checked="1" style="display: none;"><span class="x-mark animateXMark"><span class="line left"></span><span class="line right"></span></span></div>
+    <div class="icon warning" bis_skin_checked="1" style="display: none;"> <span class="body"></span> <span class="dot"></span> </div>
+    <div class="icon info" bis_skin_checked="1" style="display: none;"></div>
+    <div class="icon success" bis_skin_checked="1" style="display: block;">
+        <span class="line tip"></span> <span class="line long"></span> 
+        <div class="placeholder" bis_skin_checked="1"></div>
+        <div class="fix" bis_skin_checked="1"></div>
+    </div>
+    <div class="icon custom" bis_skin_checked="1" style="display: none;"></div>
+    <h2>Ebaaa!</h2>
+    <p class="lead text-muted swall-text" style="display: block;">A extensão da infoway está em funcionamento, parabens! Aproveite a extensão, caso tenha alguma ideia entre em contato (luizmarroni)</p>
+    <p class="swall-details-container" style="display: none;"><a class="swall-details-button">Detalhes</a><span class="swall-details m-t-5"></span></p>
+    <p><button class="btn btn-lg btn-default" id="naomostrar" style="display: inline-block;">Não mostrar novamente</button> <button class="confirm btn btn-lg btn-primary" id="fecharModal" style="display: inline-block;">OK</button></p>
+    </div>
+    `;
+
+    var outra = `
+        <div class="sweet-overlay" id="modal-backdrop" bis_skin_checked="1" style="opacity: 1.07; display: block;"></div>
+        `;
+
+    // Adiciona o modal ao corpo do documento
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
+    document.body.insertAdjacentHTML('beforeend', outra);
+
+    var closeButton = document.querySelector('#fecharModal');
+    if (closeButton) {
+        closeButton.addEventListener('click', fecharAlerta);
+    }
+
+    var closeButton = document.querySelector('#naomostrar');
+    if (closeButton) {
+        closeButton.addEventListener('click', naoMostrar);
+    }
+}
+
+function modalErro() {
+    var modalHTML = `
+        <div class="sweet-alert showSweetAlert visible" id="modal" bis_skin_checked="1" data-has-cancel-button="false" data-has-confirm-button="true" data-allow-ouside-click="false" data-has-done-function="false" data-timer="null" style="display: block; margin-top: -150px;">
+    <div class="icon error animateErrorIcon" bis_skin_checked="1" style="display: block;"><span class="x-mark animateXMark"><span class="line left"></span><span class="line right"></span></span></div>
+    <div class="icon warning" bis_skin_checked="1" style="display: none;"> <span class="body"></span> <span class="dot"></span> </div>
+    <div class="icon info" bis_skin_checked="1" style="display: none;"></div>
+    <div class="icon success" bis_skin_checked="1" style="display: none;">
+        <span class="line tip"></span> <span class="line long"></span> 
+        <div class="placeholder" bis_skin_checked="1"></div>
+        <div class="fix" bis_skin_checked="1"></div>
+    </div>
+    <div class="icon custom" bis_skin_checked="1" style="display: none;"></div>
+    <h2>Erro :(</h2>
+    <p class="lead text-muted swall-text" style="display: block;">Erro, verifique suas credenciais e a conexão ao eden, qualquer duvida entre em contato (luizmarroni)</p>
+    <p class="swall-details-container" style="display: none;"><a class="swall-details-button">Detalhes</a><span class="swall-details m-t-5"></span></p>
+    <p><button class="btn btn-lg btn-default" id="fecharModal" style="display: inline-block;">Entrar mesmo assim</button></p>
+    </div>
+    `;
+
+    var outra = `
+        <div class="sweet-overlay" id="modal-backdrop" bis_skin_checked="1" style="opacity: 1.07; display: block;"></div>
+        `;
+
+    // Adiciona o modal ao corpo do documento
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
+    document.body.insertAdjacentHTML('beforeend', outra);
+
+    var closeButton = document.querySelector('#fecharModal');
+    if (closeButton) {
+        closeButton.addEventListener('click', fecharAlerta);
+    }
+}
+
+

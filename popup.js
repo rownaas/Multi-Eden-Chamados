@@ -48,7 +48,7 @@ function removerConfiguracoes() {
   var senha = document.getElementById('password').value;
 
   // Salve as configurações usando a API de armazenamento local
-  chrome.storage.local.remove(['usuario', 'senha'], function () {
+  chrome.storage.local.remove(['usuario', 'senha', 'naoMostrar'], function () {
     alert('Configurações removidas');
     usuario.value = '';
     senha.value = '';
