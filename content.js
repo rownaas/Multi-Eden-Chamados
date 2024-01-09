@@ -11,8 +11,7 @@ chrome.storage.local.get(['usuario', 'senha', 'naoMostrar'], function (result) {
 
     // Verificar se usuário e senha são nulos ou indefinidos
     if (usuario === null || senha === null || typeof usuario === 'undefined' || typeof senha === 'undefined') {
-        // Exibir mensagem pedindo para configurar usuário e senha
-        modalErro();
+        modalErro("Por favor, condigure as suas credenciais para utilizar a extensão");
         chrome.runtime.sendMessage({ openPopup: true });
     } else {
         // Usuário e senha estão presentes, faça algo com as informações recuperadas
@@ -95,7 +94,7 @@ chrome.storage.local.get(['usuario', 'senha', 'naoMostrar'], function (result) {
                 }
             })
             .catch(error => {
-                modalErro();
+                modalErro("Erro na requisição, verifique se o eden está disponivel na sua rede");
             });
     }
 });
@@ -304,14 +303,6 @@ function fecharModal() {
     }
 }
 
-function fecharAlerta() {
-    var modal = document.getElementById('modal');
-    modal.parentNode.removeChild(modal);
-    var overlay = document.getElementById('modal-backdrop');
-    overlay.parentNode.removeChild(overlay);
-}
-
-
 function naoMostrar() {
     var modal = document.getElementById('modal');
     modal.parentNode.removeChild(modal);
@@ -351,7 +342,7 @@ function carregarClientes() {
                 throw new Error('Erro: Não foi possível obter a lista de razões sociais.');
             }
         })
-        .catch(error => alert('Erro, usuário inválido\n' + error));
+        .catch(error => modalErro("Não foi possivel carregar os clientes"));
 }
 
 // Função para adicionar as opções ao <select>
@@ -695,7 +686,7 @@ function modalBenvindo() {
     }
 }
 
-function modalErro() {
+function modalErro(mensagem) {
     var modalHTML = `
         <div class="sweet-alert showSweetAlert visible" id="modal" bis_skin_checked="1" data-has-cancel-button="false" data-has-confirm-button="true" data-allow-ouside-click="false" data-has-done-function="false" data-timer="null" style="display: block; margin-top: -150px;">
     <div class="icon error animateErrorIcon" bis_skin_checked="1" style="display: block;"><span class="x-mark animateXMark"><span class="line left"></span><span class="line right"></span></span></div>
@@ -708,7 +699,7 @@ function modalErro() {
     </div>
     <div class="icon custom" bis_skin_checked="1" style="display: none;"></div>
     <h2>Erro :(</h2>
-    <p class="lead text-muted swall-text" style="display: block;">Erro, verifique suas credenciais e a conexão ao eden, qualquer duvida entre em contato (luizmarroni)</p>
+    <p class="lead text-muted swall-text" style="display: block;">` + mensagem + `</p>
     <p class="swall-details-container" style="display: none;"><a class="swall-details-button">Detalhes</a><span class="swall-details m-t-5"></span></p>
     <p><button class="btn btn-lg btn-default" id="fecharModal" style="display: inline-block;">Entrar mesmo assim</button></p>
     </div>
@@ -743,7 +734,7 @@ function modalChamado(err) {
     <h2>Tudo certinho!</h2>
     <p class="lead text-muted swall-text" style="display: block;">`+ err +`</p>
     <p class="swall-details-container" style="display: none;"><a class="swall-details-button">Detalhes</a><span class="swall-details m-t-5"></span></p>
-    <p><button class="confirm btn btn-lg btn-primary" id="fecharChamado" style="display: inline-block;">fechar e finalizar chamado</button> <button class="confirm btn btn-lg btn-primary" id="fecharModal" style="display: inline-block;">fechar</button></p>
+    <p><button class="confirm btn btn-lg btn-primary" id="fecharChamado" style="display: inline-block;">fechar e finalizar chamado</button> <button class="confirm btn btn-lg btn-danger" id="fecharModal" style="display: inline-block;">fechar</button></p>
     </div>
     `;
 
@@ -771,6 +762,12 @@ function modalChamado(err) {
     }
 }
 
+function fecharAlerta() {
+    var modal = document.getElementById('modal');
+    modal.parentNode.removeChild(modal);
+    var overlay = document.getElementById('modal-backdrop');
+    overlay.parentNode.removeChild(overlay);
+}
 
 function fecharChamado(){
     const botao = document.evaluate("/html/body/data/section/section/div/div[2]/div[5]/div[1]/div[1]/div[2]/span[4]", document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
