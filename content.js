@@ -496,7 +496,7 @@ function lancarModal() {
 
     fetch("https://portal.infowaycloud.com.br/api/chamado.php", requestOptions)
         .then(response => response.text())
-        .then(result => alert(result), fecharModal())
+        .then(result => modalChamado(result), fecharModal())
         .catch(error => alert('error', error));
 }
 
@@ -728,4 +728,53 @@ function modalErro() {
     }
 }
 
+function modalChamado(err) {
+    var modalHTML = `
+        <div class="sweet-alert showSweetAlert visible" id="modal" bis_skin_checked="1" data-has-cancel-button="false" data-has-confirm-button="true" data-allow-ouside-click="false" data-has-done-function="false" data-timer="null" style="display: block; margin-top: -150px;">
+    <div class="icon error animateErrorIcon" bis_skin_checked="1" style="display: none;"><span class="x-mark animateXMark"><span class="line left"></span><span class="line right"></span></span></div>
+    <div class="icon warning" bis_skin_checked="1" style="display: none;"> <span class="body"></span> <span class="dot"></span> </div>
+    <div class="icon info" bis_skin_checked="1" style="display: none;"></div>
+    <div class="icon success" bis_skin_checked="1" style="display: block;">
+        <span class="line tip"></span> <span class="line long"></span> 
+        <div class="placeholder" bis_skin_checked="1"></div>
+        <div class="fix" bis_skin_checked="1"></div>
+    </div>
+    <div class="icon custom" bis_skin_checked="1" style="display: none;"></div>
+    <h2>Tudo certinho!</h2>
+    <p class="lead text-muted swall-text" style="display: block;">`+ err +`</p>
+    <p class="swall-details-container" style="display: none;"><a class="swall-details-button">Detalhes</a><span class="swall-details m-t-5"></span></p>
+    <p><button class="confirm btn btn-lg btn-primary" id="fecharChamado" style="display: inline-block;">fechar e finalizar chamado</button> <button class="confirm btn btn-lg btn-primary" id="fecharModal" style="display: inline-block;">fechar</button></p>
+    </div>
+    `;
+
+    var outra = `
+        <div class="sweet-overlay" id="modal-backdrop" bis_skin_checked="1" style="opacity: 1.07; display: block;"></div>
+        `;
+
+    // Adiciona o modal ao corpo do documento
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
+    document.body.insertAdjacentHTML('beforeend', outra);
+
+    var closeButton = document.querySelector('#fecharModal');
+    if (closeButton) {
+        closeButton.addEventListener('click', fecharAlerta);
+    }
+
+    var closeButton = document.querySelector('#naomostrar');
+    if (closeButton) {
+        closeButton.addEventListener('click', naoMostrar);
+    }
+
+    var closeButton = document.querySelector('#fecharChamado');
+    if (closeButton) {
+        closeButton.addEventListener('click', fecharChamado);
+    }
+}
+
+
+function fecharChamado(){
+    const botao = document.evaluate("/html/body/data/section/section/div/div[2]/div[5]/div[1]/div[1]/div[2]/span[4]", document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
+    botao.click();
+    fecharAlerta();
+}
 
