@@ -5,108 +5,115 @@ var login_user;
 var log = false;
 var logado = false;
 
-chrome.storage.local.get(['usuario', 'senha', 'naoMostrar'], function (result) {
-    var usuario = result.usuario;
-    var senha = result.senha;
+function startup(){
+    chrome.storage.local.get(['usuario', 'senha', 'naoMostrar'], function (result) {
+        var usuario = result.usuario;
+        var senha = result.senha;
 
-    // Verificar se usuário e senha são nulos ou indefinidos
-    if (usuario === null || senha === null || typeof usuario === 'undefined' || typeof senha === 'undefined') {
-        modalErro("Por favor, condigure as suas credenciais para utilizar a extensão");
-        chrome.runtime.sendMessage({ openPopup: true });
-    } else {
-        // Usuário e senha estão presentes, faça algo com as informações recuperadas
-        if (log) {
-            console.log('Usuário:', usuario);
-            console.log('Senha:', senha);
+        // Verificar se usuário e senha são nulos ou indefinidos
+        if (usuario === null || senha === null || typeof usuario === 'undefined' || typeof senha === 'undefined') {
+            modalErro("Por favor, condigure as suas credenciais para utilizar a extensão");
+            chrome.runtime.sendMessage({ openPopup: true });
+        } else {
+            // Usuário e senha estão presentes, faça algo com as informações recuperadas
+            if (log) {
+                console.log('Usuário:', usuario);
+                console.log('Senha:', senha);
+            }
+
+            const url = "https://portal.infowaycloud.com.br/api/auth.php";
+            const dados = {
+                login: usuario,
+                senha: senha
+            };
+
+
+            fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(dados),
+            })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Erro na requisição.');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    // Aqui você verifica se a resposta contém o token de acesso
+                    if (data.accessToken) {
+                        auth = data.accessToken;
+                        name_user = data["data-user"]["userData"]["fullName"];
+                        login_user = data["data-user"]["userData"]["userName"];
+                        id_user = data["data-user"]["userData"]["userId"];
+
+                        logado = true;
+
+                        if (!result.naoMostrar) {
+                            modalBenvindo()
+                        }
+
+                        //Configurações visuais
+                        var elementoImg = document.evaluate('/html/body/data/section/aside/div/div[1]/img', document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
+                        if (elementoImg) {
+                            elementoImg.setAttribute('src', 'https://infowayti.com.br/assets/images/infowayico.ico');
+                        } else {
+                            console.error('Elemento não encontrado com o XPath fornecido.');
+                        }
+
+                        var elementoImg = document.evaluate('/html/body/data/section/section/div/div[2]/div[3]/div/img', document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
+                        if (elementoImg) {
+                            elementoImg.setAttribute('src', 'https://infowayti.com.br/assets/images/testimonial/logo.png');
+                        } else {
+                            console.error('Elemento não encontrado com o XPath fornecido.');
+                        }
+
+                        var elementoHeader = document.evaluate('/html/body/data/header', document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
+                        if (elementoHeader) {
+                            elementoHeader.style.backgroundColor = 'rgb(255, 118, 0)';
+                        } else {
+                            console.error('Elemento não encontrado com o XPath fornecido.');
+                        }
+
+                        var elementoHeader = document.evaluate('/html/body/data/div/div/div[1]', document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
+                        if (elementoHeader) {
+                            elementoHeader.style.backgroundColor = 'rgb(255, 118, 0)';
+                        } else {
+                            console.error('Elemento não encontrado com o XPath fornecido.');
+                        }
+
+                        var elementoHeader = document.evaluate('/html/body/data/section/aside/div/div[2]/div/div[2]/div/a', document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
+                        if (elementoHeader) {
+                            elementoHeader.style.setProperty('background-color', 'rgb(255, 118, 0)', 'important');
+                        } else {
+                            console.error('Elemento não encontrado com o XPath fornecido.');
+                        }
+
+                        var elementoHeader = document.evaluate('/html/body/data/header/div/div[1]/div[2]/a', document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
+                        if (elementoHeader) {
+                            elementoHeader.textContent = 'INFOWAY - CANAL DE SUPORTE';
+                        } else {
+                            console.error('Elemento não encontrado com o XPath fornecido.');
+                        }
+                    } else {
+                        throw new Error('Erro: Não foi possível obter o token de acesso.');
+                    }
+                })
+                .catch(error => {
+                    modalErro("Erro na requisição, verifique se o eden está disponivel na sua rede");
+                });
         }
-
-        const url = "https://portal.infowaycloud.com.br/api/auth.php";
-        const dados = {
-            login: usuario,
-            senha: senha
-        };
-
-
-        fetch(url, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(dados),
-        })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Erro na requisição.');
-                }
-                return response.json();
-            })
-            .then(data => {
-                // Aqui você verifica se a resposta contém o token de acesso
-                if (data.accessToken) {
-                    auth = data.accessToken;
-                    name_user = data["data-user"]["userData"]["fullName"];
-                    login_user = data["data-user"]["userData"]["userName"];
-                    id_user = data["data-user"]["userData"]["userId"];
-
-                    logado = true;
-
-                    if (!result.naoMostrar) {
-                        modalBenvindo()
-                    }
-
-                    //Configurações visuais
-                    var elementoImg = document.evaluate('/html/body/data/section/aside/div/div[1]/img', document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
-                    if (elementoImg) {
-                        elementoImg.setAttribute('src', 'https://infowayti.com.br/assets/images/infowayico.ico');
-                    } else {
-                        console.error('Elemento não encontrado com o XPath fornecido.');
-                    }
-
-                    var elementoImg = document.evaluate('/html/body/data/section/section/div/div[2]/div[3]/div/img', document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
-                    if (elementoImg) {
-                        elementoImg.setAttribute('src', 'https://infowayti.com.br/assets/images/testimonial/logo.png');
-                    } else {
-                        console.error('Elemento não encontrado com o XPath fornecido.');
-                    }
-
-                    var elementoHeader = document.evaluate('/html/body/data/header', document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
-                    if (elementoHeader) {
-                        elementoHeader.style.backgroundColor = 'rgb(255, 118, 0)';
-                    } else {
-                        console.error('Elemento não encontrado com o XPath fornecido.');
-                    }
-
-                    var elementoHeader = document.evaluate('/html/body/data/div/div/div[1]', document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
-                    if (elementoHeader) {
-                        elementoHeader.style.backgroundColor = 'rgb(255, 118, 0)';
-                    } else {
-                        console.error('Elemento não encontrado com o XPath fornecido.');
-                    }
-
-                    var elementoHeader = document.evaluate('/html/body/data/header/div/div[1]/div[2]/a', document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
-                    if (elementoHeader) {
-                        elementoHeader.textContent = 'INFOWAY - CANAL DE SUPORTE';
-                    } else {
-                        console.error('Elemento não encontrado com o XPath fornecido.');
-                    }
-                } else {
-                    throw new Error('Erro: Não foi possível obter o token de acesso.');
-                }
-            })
-            .catch(error => {
-                modalErro("Erro na requisição, verifique se o eden está disponivel na sua rede");
-            });
-    }
-});
-
-
-
+    });
+}
 
 // Espera até que a página esteja completamente carregada
 window.addEventListener('load', function () {
     console.log(".");
     // Busca e adiciona o botão inicialmente
     buscarEAdicionarBotao();
+    startup();
 
     // Adiciona um ouvinte de evento de clique à página
     document.addEventListener('click', function () {
@@ -140,11 +147,18 @@ function buscarEAdicionarBotao() {
         contactActions.appendChild(zabbixModalBtn);
         zabbixModalBtn.addEventListener('click', zabbixModal);
 
+        var syncInfoBtn = document.createElement('span');
+        syncInfoBtn.title = "SINCRONIZAR INFORMAÇÕES";
+        syncInfoBtn.className = "icone no-mobile i-finalizar";
+        syncInfoBtn.style = "";
+        syncInfoBtn.innerHTML = '<i class="zmdi zmdi-refresh-sync" id="spinner"></i>';
+        contactActions.appendChild(syncInfoBtn);
+        syncInfoBtn.addEventListener('click', syncInfo);
+
         // Marca a função como executada
         buscarEAdicionarBotao.executado = true;
     }
 }
-
 
 function mostrarModal() {
     // Adiciona o conteúdo HTML fornecido à modal
@@ -572,7 +586,7 @@ function retornarPorta() {
     return valorElemento;
 }
 
-function retornarCnpj(){
+function retornarCnpj() {
     var xpath = "/html/body/data/section/section/div/div[2]/div[5]/div[2]/div[3]/uib-accordion/div/div[2]/div[2]/div/div/form/div[2]/div/div/div/input";
     var resultado = document.evaluate(xpath, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null);
     var valorElemento = resultado.singleNodeValue.value;
@@ -611,6 +625,50 @@ function testeGrafico() {
             });
         })
         .catch(error => console.log('error', error));
+}
+
+function syncInfo() {
+    var cnpj
+    const spinner = document.getElementById('spinner');
+    let rotation = 0;
+    const intervalId = setInterval(rotateSpinner, 10);
+    function rotateSpinner() {
+        rotation -= 1;
+        spinner.style.transform = `rotate(${rotation}deg)`;
+    }
+    var porta = retornarPorta();
+
+    var myHeaders = new Headers();
+    myHeaders.append("Content-Type", "application/x-www-form-urlencoded");
+
+    var urlencoded = new URLSearchParams();
+    urlencoded.append("porta", porta);
+
+    var requestOptions = {
+        method: 'POST',
+        headers: myHeaders,
+        body: urlencoded,
+        redirect: 'follow'
+    };
+
+    fetch("https://portal.infowaycloud.com.br/api/sync_zabbix.php", requestOptions)
+        .then(response => response.json())
+        .then(result => campoCnpj(result[0].result[0].tags[0].value), clearInterval(intervalId))
+        .catch(error => console.log('error', error));
+}
+
+function campoCnpj(cnpj){
+    var elementoXPath = document.evaluate(
+        '/html/body/data/section/section/div/div[2]/div[5]/div[2]/div[3]/uib-accordion/div/div[2]/div[2]/div/div/form/div[2]/div/div/div/input',
+        document,
+        null,
+        XPathResult.FIRST_ORDERED_NODE_TYPE,
+        null
+    ).singleNodeValue;
+
+    if (elementoXPath) {
+        elementoXPath.value = cnpj;
+    }
 }
 
 function usuariosZabbix() {
@@ -732,7 +790,7 @@ function modalChamado(err) {
     </div>
     <div class="icon custom" bis_skin_checked="1" style="display: none;"></div>
     <h2>Tudo certinho!</h2>
-    <p class="lead text-muted swall-text" style="display: block;">`+ err +`</p>
+    <p class="lead text-muted swall-text" style="display: block;">`+ err + `</p>
     <p class="swall-details-container" style="display: none;"><a class="swall-details-button">Detalhes</a><span class="swall-details m-t-5"></span></p>
     <p><button class="confirm btn btn-lg btn-primary" id="fecharChamado" style="display: inline-block;">fechar e finalizar chamado</button> <button class="confirm btn btn-lg btn-danger" id="fecharModal" style="display: inline-block;">fechar</button></p>
     </div>
@@ -769,7 +827,7 @@ function fecharAlerta() {
     overlay.parentNode.removeChild(overlay);
 }
 
-function fecharChamado(){
+function fecharChamado() {
     const botao = document.evaluate("/html/body/data/section/section/div/div[2]/div[5]/div[1]/div[1]/div[2]/span[4]", document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
     botao.click();
     fecharAlerta();
