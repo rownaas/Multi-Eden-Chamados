@@ -13,7 +13,7 @@ function startup(){
         // Verificar se usuário e senha são nulos ou indefinidos
         if (usuario === null || senha === null || typeof usuario === 'undefined' || typeof senha === 'undefined') {
             modalErro("Por favor, condigure as suas credenciais para utilizar a extensão");
-            chrome.runtime.sendMessage({ openPopup: true });
+
         } else {
             // Usuário e senha estão presentes, faça algo com as informações recuperadas
             if (log) {
@@ -108,57 +108,52 @@ function startup(){
     });
 }
 
-// Espera até que a página esteja completamente carregada
-window.addEventListener('load', function () {
+function inicializarSite() {
     console.log(".");
-    // Busca e adiciona o botão inicialmente
     buscarEAdicionarBotao();
     startup();
-
-    // Adiciona um ouvinte de evento de clique à página
     document.addEventListener('click', function () {
-        // Tenta buscar e adicionar o botão novamente quando o usuário clicar em algo na página
         buscarEAdicionarBotao();
     });
-});
-
-
-// Função para buscar e adicionar o botão
-function buscarEAdicionarBotao() {
-    // Procura pelo elemento com a classe 'contact-actions'
-    var contactActions = document.querySelector('.contact-actions');
-
-    // Verifica se o elemento foi encontrado e se a função não foi executada anteriormente
-    if (contactActions && !buscarEAdicionarBotao.executado) {
-
-        var lancarChamado = document.createElement('span');
-        lancarChamado.title = "MANDAR CHAMADO (EDEN)";
-        lancarChamado.className = "icone no-mobile i-finalizar";
-        lancarChamado.style = "";
-        lancarChamado.innerHTML = '<i class="tm-icon zmdi zmdi-plus"></i>';
-        contactActions.appendChild(lancarChamado);
-        lancarChamado.addEventListener('click', mostrarModal);
-
-        var zabbixModalBtn = document.createElement('span');
-        zabbixModalBtn.title = "VERIFICAR ZABBIX PELA PORTA";
-        zabbixModalBtn.className = "icone no-mobile i-finalizar";
-        zabbixModalBtn.style = "";
-        zabbixModalBtn.innerHTML = '<i class="zmdi zmdi-memory"></i>';
-        contactActions.appendChild(zabbixModalBtn);
-        zabbixModalBtn.addEventListener('click', zabbixModal);
-
-        var syncInfoBtn = document.createElement('span');
-        syncInfoBtn.title = "SINCRONIZAR INFORMAÇÕES";
-        syncInfoBtn.className = "icone no-mobile i-finalizar";
-        syncInfoBtn.style = "";
-        syncInfoBtn.innerHTML = '<i class="zmdi zmdi-refresh-sync" id="spinner"></i>';
-        contactActions.appendChild(syncInfoBtn);
-        syncInfoBtn.addEventListener('click', syncInfo);
-
-        // Marca a função como executada
-        buscarEAdicionarBotao.executado = true;
-    }
 }
+
+window.addEventListener('load', inicializarSite);
+window.addEventListener('popstate', inicializarSite);
+
+
+
+function buscarEAdicionarBotao() {
+    var contactActions = document.querySelector('.contact-actions');
+    if (!contactActions) {
+        return;
+    }
+
+    if (contactActions.querySelector('#mandarChamado') && 
+        contactActions.querySelector('#zabbix') && 
+        contactActions.querySelector('#syncinfo')) {
+        return;
+    }
+    var lancarChamado = criarBotao('mandarChamado', 'MANDAR CHAMADO (EDEN)', 'zmdi zmdi-plus', mostrarModal);
+    contactActions.appendChild(lancarChamado);
+    
+    var zabbixModalBtn = criarBotao('zabbix', 'VERIFICAR ZABBIX PELA PORTA', 'zmdi zmdi-memory', zabbixModal);
+    contactActions.appendChild(zabbixModalBtn);
+
+    var syncInfoBtn = criarBotao('syncinfo', 'SINCRONIZAR INFORMAÇÕES', 'zmdi zmdi-refresh-sync', syncInfo);
+    contactActions.appendChild(syncInfoBtn);
+}
+
+function criarBotao(id, title, iconClass, clickHandler) {
+    var botao = document.createElement('span');
+    botao.id = id;
+    botao.title = title;
+    botao.className = 'icone no-mobile i-finalizar';
+    botao.style = '';
+    botao.innerHTML = '<i class="' + iconClass + '"></i>';
+    botao.addEventListener('click', clickHandler);
+    return botao;
+}
+
 
 function mostrarModal() {
     // Adiciona o conteúdo HTML fornecido à modal
@@ -628,7 +623,6 @@ function testeGrafico() {
 }
 
 function syncInfo() {
-    var cnpj
     const spinner = document.getElementById('spinner');
     let rotation = 0;
     const intervalId = setInterval(rotateSpinner, 10);
@@ -652,9 +646,13 @@ function syncInfo() {
     };
 
     fetch("https://portal.infowaycloud.com.br/api/sync_zabbix.php", requestOptions)
-        .then(response => response.json())
-        .then(result => campoCnpj(result[0].result[0].tags[0].value), clearInterval(intervalId))
-        .catch(error => console.log('error', error));
+    .then(response => response.json())
+    .then(result => {
+        campoCnpj(result[0].result[0].tags[0].value);
+        campoNome(result[0].result[0].tags[2].value);
+        clearInterval(intervalId);
+    })
+    .catch(error => console.log('error', error));
 }
 
 function campoCnpj(cnpj){
@@ -668,6 +666,20 @@ function campoCnpj(cnpj){
 
     if (elementoXPath) {
         elementoXPath.value = cnpj;
+    }
+}
+
+function campoNome(nome){
+    var elementoXPath = document.evaluate(
+        '/html/body/data/section/section/div/div[2]/div[5]/div[2]/div[3]/uib-accordion/div/div[2]/div[2]/div/div/form/div[3]/div/div/div/input',
+        document,
+        null,
+        XPathResult.FIRST_ORDERED_NODE_TYPE,
+        null
+    ).singleNodeValue;
+
+    if (elementoXPath) {
+        elementoXPath.value = nome;
     }
 }
 

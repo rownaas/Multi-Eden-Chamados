@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "name": "InfoMonitor & Eden",
+  "name": "InfoMonitor",
   "version": "1.8",
   "description": "Extensão desenvolvida para ajudar os suportes com informações do zabbix e para lançar chamados com facilidade",
   "action": {
