@@ -5,7 +5,7 @@ var login_user;
 var log = false;
 var logado = false;
 
-function startup(){
+function startup() {
     chrome.storage.local.get(['usuario', 'senha', 'naoMostrar'], function (result) {
         var usuario = result.usuario;
         var senha = result.senha;
@@ -128,15 +128,15 @@ function buscarEAdicionarBotao() {
         return;
     }
 
-    if (contactActions.querySelector('#mandarChamado') && 
-        contactActions.querySelector('#zabbix') && 
+    if (contactActions.querySelector('#mandarChamado') &&
+        contactActions.querySelector('#zabbixBtn') &&
         contactActions.querySelector('#syncinfo')) {
         return;
     }
     var lancarChamado = criarBotao('mandarChamado', 'MANDAR CHAMADO (EDEN)', 'zmdi zmdi-plus', mostrarModal);
     contactActions.appendChild(lancarChamado);
-    
-    var zabbixModalBtn = criarBotao('zabbix', 'VERIFICAR ZABBIX PELA PORTA', 'zmdi zmdi-memory', zabbixModal);
+
+    var zabbixModalBtn = criarBotao('zabbixBtn', 'VERIFICAR ZABBIX PELA PORTA', 'zmdi zmdi-memory', zabbixModal);
     contactActions.appendChild(zabbixModalBtn);
 
     var syncInfoBtn = criarBotao('syncinfo', 'SINCRONIZAR INFORMAÇÕES', 'zmdi zmdi-refresh-sync', syncInfo);
@@ -246,7 +246,6 @@ function mostrarModal() {
             </div></div>
     </div>
     <div class="modal-footer ng-scope">
-        <button class="btn btn-link ng-binding waves-effect" id="baixarPDFBtn">Baixar TXT (Em Testes)</button>
         <button class="btn btn-link ng-binding waves-effect" id="fecharModal" ng-click="onModalCancelar()">Fechar</button>
         <button class="btn btn-link ng-binding waves-effect" id="lancarModal" ng-click="onModalInserir()">Enviar</button>
     </div></div></div>
@@ -271,32 +270,12 @@ function mostrarModal() {
     if (lancarButton) {
         lancarButton.addEventListener('click', lancarModal);
     }
-
-    var baixarPDFBtn = document.querySelector('#baixarPDFBtn');
-    if (baixarPDFBtn) {
-        baixarPDFBtn.addEventListener('click', baixarPDF);
-    }
     carregarClientes();
 
     const xpath = "/html/body/data/section/section/div/div[2]/div[5]/div[2]/div[3]/div/div[2]/div[1]";
     const xpathResult = document.evaluate(xpath, document, null, XPathResult.STRING_TYPE, null);
     const Protocolo = xpathResult.stringValue;
     protocoloModal(Protocolo);
-}
-
-function baixarPDF() {
-    var mensagens = document.querySelectorAll('.content-center');
-    var primeiroItemOuterText = mensagens[0].outerText;
-    console.log(primeiroItemOuterText);
-
-    const blob = new Blob([primeiroItemOuterText], { type: 'text/plain' });
-    const urlBlob = window.URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = urlBlob;
-    link.download = "chat.txt";
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
 }
 
 function fecharModal() {
@@ -575,7 +554,7 @@ function removerConteudo() {
 }
 
 function retornarPorta() {
-    var xpath = "/html/body/data/section/section/div/div[2]/div[5]/div[2]/div[3]/uib-accordion/div/div[2]/div[2]/div/div/form/div[4]/div/div/div/input";
+    var xpath = "/html/body/data/section/section/div/div[2]/div[5]/div[2]/div[3]/uib-accordion/div/div[2]/div[2]/div/div/form/div[6]/div/div/div/input";
     var resultado = document.evaluate(xpath, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null);
     var valorElemento = resultado.singleNodeValue.value;
     return valorElemento;
@@ -612,8 +591,9 @@ function testeGrafico() {
         .then(result => {
             retirarSpinner();
             result.forEach(graph => {
+                var data = graph.imageData;
                 var img = document.createElement("img");
-                img.src = 'data:image/png;base64,' + graph.imageData;
+                img.src = 'data:image/png;base64,' + data;
                 img.width = 1500;
                 img.height = 500;
                 document.getElementById("zabbix").appendChild(img);
@@ -623,39 +603,46 @@ function testeGrafico() {
 }
 
 function syncInfo() {
-    const spinner = document.getElementById('spinner');
-    let rotation = 0;
-    const intervalId = setInterval(rotateSpinner, 10);
-    function rotateSpinner() {
-        rotation -= 1;
-        spinner.style.transform = `rotate(${rotation}deg)`;
-    }
     var porta = retornarPorta();
-
     var myHeaders = new Headers();
     myHeaders.append("Content-Type", "application/x-www-form-urlencoded");
-
     var urlencoded = new URLSearchParams();
     urlencoded.append("porta", porta);
-
     var requestOptions = {
         method: 'POST',
         headers: myHeaders,
         body: urlencoded,
         redirect: 'follow'
     };
-
     fetch("https://portal.infowaycloud.com.br/api/sync_zabbix.php", requestOptions)
-    .then(response => response.json())
-    .then(result => {
-        campoCnpj(result[0].result[0].tags[0].value);
-        campoNome(result[0].result[0].tags[2].value);
-        clearInterval(intervalId);
-    })
-    .catch(error => console.log('error', error));
+        .then(response => response.json())
+        .then(result => {
+            // Verifica se há dados na resposta antes de acessar propriedades
+            if (result) {
+                const dados = result;
+
+                // Agora você pode referenciar as informações assim:
+                const cnpj = dados.cnpj;
+                const erpnow = dados.erpnow;
+                const senha = dados.senha;
+                const personalizacao = dados.personalizacao;
+                campoCnpj(cnpj);
+                campoNome(erpnow);
+                campoSenha(senha);
+                campoPersonalizacao(personalizacao);
+
+                console.log("Dados:", dados);
+            } else {
+                console.log("Resposta vazia ou sem dados.");
+            }
+
+            clearInterval(intervalId);
+        })
+        .catch(error => console.log('Erro na requisição:', error));
+
 }
 
-function campoCnpj(cnpj){
+function campoCnpj(cnpj) {
     var elementoXPath = document.evaluate(
         '/html/body/data/section/section/div/div[2]/div[5]/div[2]/div[3]/uib-accordion/div/div[2]/div[2]/div/div/form/div[2]/div/div/div/input',
         document,
@@ -669,7 +656,7 @@ function campoCnpj(cnpj){
     }
 }
 
-function campoNome(nome){
+function campoNome(nome) {
     var elementoXPath = document.evaluate(
         '/html/body/data/section/section/div/div[2]/div[5]/div[2]/div[3]/uib-accordion/div/div[2]/div[2]/div/div/form/div[3]/div/div/div/input',
         document,
@@ -682,6 +669,35 @@ function campoNome(nome){
         elementoXPath.value = nome;
     }
 }
+
+function campoSenha(senha) {
+    var elementoXPath = document.evaluate(
+        '/html/body/data/section/section/div/div[2]/div[5]/div[2]/div[3]/uib-accordion/div/div[2]/div[2]/div/div/form/div[7]/div/div/div/input',
+        document,
+        null,
+        XPathResult.FIRST_ORDERED_NODE_TYPE,
+        null
+    ).singleNodeValue;
+
+    if (elementoXPath) {
+        elementoXPath.value = senha;
+    }
+}
+
+function campoPersonalizacao(personalizacao) {
+    var elementoXPath = document.evaluate(
+        '/html/body/data/section/section/div/div[2]/div[5]/div[2]/div[3]/uib-accordion/div/div[2]/div[2]/div/div/form/div[5]/div/div/div/input',
+        document,
+        null,
+        XPathResult.FIRST_ORDERED_NODE_TYPE,
+        null
+    ).singleNodeValue;
+
+    if (elementoXPath) {
+        elementoXPath.value = personalizacao;
+    }
+}
+
 
 function usuariosZabbix() {
     removerConteudo()

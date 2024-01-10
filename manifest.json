@@ -27,9 +27,7 @@
     "service_worker": "background.js"
   },
   "permissions": [
-    "activeTab",
-    "storage",
-    "downloads"
+    "storage"
   ],
   "host_permissions": [
     "*://painel.multi360.com.br/"
