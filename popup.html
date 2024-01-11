@@ -6,30 +6,33 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Login Popup</title>
     <!-- Adicione o link do Bootstrap CSS -->
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,300;0,400;0,500;0,600;1,400&amp;display=swap" rel="stylesheet">
+    <link
+      href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,300;0,400;0,500;0,600;1,400&amp;display=swap"
+      rel="stylesheet"
+    />
     <link
       href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
       rel="stylesheet"
     />
-    <link
-      href="styles.css"
-      rel="stylesheet"
-    />
+    <link href="styles.css" rel="stylesheet" />
   </head>
   <body>
     <style>
       .container {
-        padding-top: 90px !important;
+        padding-top: 66px !important;
       }
-      .h2, h2{
-        font-size: 6.0rem !important;
+      .h2,
+      h2 {
+        font-size: 6rem !important;
       }
     </style>
 
-    <div class="container d-flex align-items-center auth-bg px-2 p-lg-5 col-lg-4">
+    <div
+      class="container d-flex align-items-center auth-bg px-2 p-lg-5 col-lg-4"
+    >
       <div class="px-xl-2 mx-auto col-sm-8 col-md-6 col-lg-12 mb-4">
         <h2 class="card-title font-weight-bold mb-1">Bem vindos!</h2>
-        <p class="card-text mb-2">Por favor, faça login na sua conta</p>
+        <p class="card-text mb-2">Salve suas credenciais da eden e da multi</p>
         <span
           ><form class="auth-login-form mt-2">
             <div role="group" class="form-group" id="__BVID__41">
@@ -37,7 +40,7 @@
                 for="login-email"
                 class="d-block"
                 id="__BVID__41__BV_label_"
-                >E-mail</label
+                >E-mail Eden</label
               >
               <div>
                 <span
@@ -56,7 +59,7 @@
               <!---->
               <div>
                 <div class="d-flex justify-content-between">
-                  <label for="login-password">Senha</label>
+                  <label for="login-password">Senha Eden</label>
                 </div>
                 <div class="row">
                   <div class="col-12">
@@ -78,14 +81,65 @@
                 ><!----><!----><!---->
               </div>
             </fieldset>
-            <!----><button type="submit" id="salvarConfiguracoesBtn" class="btn btn-primary btn-block">
+            <div role="group" class="form-group" id="__BVID__41">
+              <label
+                for="login-email"
+                class="d-block"
+                id="__BVID__41__BV_label_"
+                >Login Multi</label
+              >
+              <div>
+                <span
+                  ><input
+                    id="username-multi"
+                    name="login"
+                    type="text"
+                    placeholder="pessoa.sobrenome"
+                    class="form-control" /><small
+                    class="text-danger"
+                  ></small></span
+                ><!----><!----><!---->
+              </div>
+            </div>
+            <fieldset class="form-group" id="__BVID__44">
+              <!---->
+              <div>
+                <div class="d-flex justify-content-between">
+                  <label for="login-password">Senha da Multi</label>
+                </div>
+                <div class="row">
+                  <div class="col-12">
+                    <span
+                      ><div role="group" class="input-group input-group-merge">
+                        <!----><input
+                          id="password-multi"
+                          type="password"
+                          placeholder="*******"
+                          class="form-control-merge form-control"
+                        />
+                        <!---->
+                      </div>
+                      <small class="text-danger"></small
+                    ></span>
+                  </div>
+                </div>
+                <small class="text-danger"></small
+                ><!----><!----><!---->
+              </div>
+            </fieldset>
+            <!----><button
+              type="submit"
+              id="salvarConfiguracoesBtn"
+              class="btn btn-primary btn-block"
+            >
               Salvar
             </button>
-            <button type="submit" id="removerConfiguracoesBtn" class="btn btn-danger btn-block">
+            <button
+              type="submit"
+              id="removerConfiguracoesBtn"
+              class="btn btn-danger btn-block"
+            >
               Excluir Configurações
-            </button>
-            <button type="submit" id="testarConexaoBtn" class="btn btn-dark btn-block">
-              Testar Conexão
             </button>
           </form></span
         >

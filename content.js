@@ -6,14 +6,15 @@ var log = false;
 var logado = false;
 
 function startup() {
-    chrome.storage.local.get(['usuario', 'senha', 'naoMostrar'], function (result) {
+    chrome.storage.local.get(['usuario', 'senha', 'naoMostrar', 'usuario_multi', 'senha_multi'], function (result) {
         var usuario = result.usuario;
         var senha = result.senha;
+        var usuario_multi = result.usuario_multi;
+        var senha_multi = result.senha_multi;
 
         // Verificar se usuário e senha são nulos ou indefinidos
-        if (usuario === null || senha === null || typeof usuario === 'undefined' || typeof senha === 'undefined') {
+        if (usuario === null || senha === null || usuario_multi === null || senha_multi === null || typeof usuario === 'undefined' || typeof senha === 'undefined' || typeof usuario_multi === 'undefined' || typeof senha_multi === 'undefined') {
             modalErro("Por favor, condigure as suas credenciais para utilizar a extensão");
-
         } else {
             // Usuário e senha estão presentes, faça algo com as informações recuperadas
             if (log) {
@@ -48,9 +49,31 @@ function startup() {
                         name_user = data["data-user"]["userData"]["fullName"];
                         login_user = data["data-user"]["userData"]["userName"];
                         id_user = data["data-user"]["userData"]["userId"];
-
                         logado = true;
 
+                        var myHeaders = new Headers();
+                        myHeaders.append("Content-Type", "application/x-www-form-urlencoded");
+
+                        var urlencoded = new URLSearchParams();
+                        urlencoded.append("login", usuario_multi);
+                        urlencoded.append("senha", senha_multi);
+
+                        var requestOptions = {
+                            method: 'POST',
+                            headers: myHeaders,
+                            body: urlencoded,
+                            redirect: 'follow'
+                        };
+
+                        fetch("https://portal.infowaycloud.com.br/api/auth_multi.php", requestOptions)
+                            .then(response => {
+                                if (response.status == 200) {
+                                } else {
+                                    modalErro("Suas credenciais da MULTI360 estão incorretas, por favor verifique novamente ou ignore.");
+                                }
+                            })
+                            .then(result => console.log(result))
+                            .catch(error => console.log('error', error));
                         if (!result.naoMostrar) {
                             modalBenvindo()
                         }
@@ -112,6 +135,7 @@ function inicializarSite() {
     console.log(".");
     buscarEAdicionarBotao();
     startup();
+    syncAll();
     document.addEventListener('click', function () {
         buscarEAdicionarBotao();
     });
@@ -141,6 +165,16 @@ function buscarEAdicionarBotao() {
 
     var syncInfoBtn = criarBotao('syncinfo', 'SINCRONIZAR INFORMAÇÕES', 'zmdi zmdi-refresh-sync', syncInfo);
     contactActions.appendChild(syncInfoBtn);
+
+    var xpath = "/html/body/data/section/section/div/div[2]/div[1]/div/div/div[2]/div[1]/div[2]";
+    var buttonElement = document.evaluate(xpath, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
+
+    if (buttonElement) {
+        buttonElement.addEventListener('click', syncAll());
+    } else {
+        console.error("Elemento do botão não encontrado com o XPath fornecido.");
+    }
+
 }
 
 function criarBotao(id, title, iconClass, clickHandler) {
@@ -861,3 +895,28 @@ function fecharChamado() {
     fecharAlerta();
 }
 
+function syncAll() {
+    chrome.storage.local.get(['usuario_multi', 'senha_multi'], function (result) {
+        var usuario_multi = result.usuario_multi;
+        var senha_multi = result.senha_multi;
+
+        var myHeaders = new Headers();
+        myHeaders.append("Content-Type", "application/x-www-form-urlencoded");
+
+        var urlencoded = new URLSearchParams();
+        urlencoded.append("login", usuario_multi);
+        urlencoded.append("senha", senha_multi);
+
+        var requestOptions = {
+            method: 'POST',
+            headers: myHeaders,
+            body: urlencoded,
+            redirect: 'follow'
+        };
+
+        fetch("https://portal.infowaycloud.com.br/api/sync_all.php", requestOptions)
+            .then(response => response.text())
+            .then(result => console.log(result))
+            .catch(error => console.log('error', error));
+    });
+}
