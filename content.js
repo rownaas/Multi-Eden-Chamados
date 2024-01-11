@@ -5,6 +5,10 @@ var login_user;
 var log = false;
 var logado = false;
 
+var usuario_multi;
+var senha_multi;
+
+
 function startup() {
     chrome.storage.local.get(['usuario', 'senha', 'naoMostrar', 'usuario_multi', 'senha_multi'], function (result) {
         var usuario = result.usuario;
@@ -135,7 +139,6 @@ function inicializarSite() {
     console.log(".");
     buscarEAdicionarBotao();
     startup();
-    syncAll();
     document.addEventListener('click', function () {
         buscarEAdicionarBotao();
     });
@@ -171,10 +174,10 @@ function buscarEAdicionarBotao() {
 
     if (buttonElement) {
         buttonElement.addEventListener('click', syncAll());
+        console.log("TESTE");
     } else {
         console.error("Elemento do botão não encontrado com o XPath fornecido.");
     }
-
 }
 
 function criarBotao(id, title, iconClass, clickHandler) {
@@ -896,27 +899,22 @@ function fecharChamado() {
 }
 
 function syncAll() {
-    chrome.storage.local.get(['usuario_multi', 'senha_multi'], function (result) {
-        var usuario_multi = result.usuario_multi;
-        var senha_multi = result.senha_multi;
+    var myHeaders = new Headers();
+    myHeaders.append("Content-Type", "application/x-www-form-urlencoded");
 
-        var myHeaders = new Headers();
-        myHeaders.append("Content-Type", "application/x-www-form-urlencoded");
+    var urlencoded = new URLSearchParams();
+    urlencoded.append("login", usuario_multi);
+    urlencoded.append("senha", senha_multi);
 
-        var urlencoded = new URLSearchParams();
-        urlencoded.append("login", usuario_multi);
-        urlencoded.append("senha", senha_multi);
+    var requestOptions = {
+        method: 'POST',
+        headers: myHeaders,
+        body: urlencoded,
+        redirect: 'follow'
+    };
 
-        var requestOptions = {
-            method: 'POST',
-            headers: myHeaders,
-            body: urlencoded,
-            redirect: 'follow'
-        };
-
-        fetch("https://portal.infowaycloud.com.br/api/sync_all.php", requestOptions)
-            .then(response => response.text())
-            .then(result => console.log(result))
-            .catch(error => console.log('error', error));
-    });
+    fetch("https://portal.infowaycloud.com.br/api/sync_all.php", requestOptions)
+        .then(response => response.text())
+        .then(result => console.log(result))
+        .catch(error => console.log('error', error));
 }
