@@ -356,7 +356,6 @@ function carregarClientes() {
             return response.json();
         })
         .then(data => {
-            // Verifica se a resposta contém a propriedade 'informacoes'
             if (data.informacoes) {
                 if (log) {
                     console.log('Informações dos clientes:');
@@ -383,7 +382,12 @@ function adicionarOpcoes(razoesSociais) {
     optionPadrao.textContent = 'Clientes';
     selectClientes.appendChild(optionPadrao);
 
-    // Adiciona as opções do array de razões sociais
+    // Ordena as razões sociais em ordem alfabética
+    razoesSociais.sort(function(a, b) {
+        return a.razaoSocial.localeCompare(b.razaoSocial);
+    });
+
+    // Adiciona as opções ordenadas do array de razões sociais
     razoesSociais.forEach(function (razaoSocial) {
         var option = document.createElement('option');
         option.textContent = razaoSocial.razaoSocial;
@@ -408,6 +412,7 @@ function adicionarOpcoes(razoesSociais) {
         }
     }
 }
+
 
 
 
@@ -760,10 +765,15 @@ function usuariosZabbix() {
         .then(response => response.json())
         .then(result => {
             retirarSpinner();
-            console.log(result[0].result[0].lastvalue)
-            var a = document.createElement("h2");
-            a.textContent = result[0].result[0].lastvalue;
-            document.getElementById("zabbix").appendChild(a);
+            console.log(result[0].result[0].lastvalue);
+
+            var divElement = document.createElement("div");
+            divElement.textContent = result[0].result[0].lastvalue;
+            divElement.style.whiteSpace = "pre-wrap";
+            divElement.style.wordWrap = "break-word";
+            divElement.style.fontSize = "50px";
+
+            document.getElementById("zabbix").appendChild(divElement);
         })
         .catch(error => console.log('error', error));
 }
