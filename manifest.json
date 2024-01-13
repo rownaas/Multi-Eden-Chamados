@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "InfoMonitor",
-  "version": "2.1",
+  "version": "2.5",
   "description": "Extensão desenvolvida para ajudar os suportes com informações do zabbix e para lançar chamados com facilidade",
   "action": {
     "default_icon": "icon.png",

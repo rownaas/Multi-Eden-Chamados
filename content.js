@@ -4,7 +4,6 @@ var name_user;
 var login_user;
 var log = false;
 var logado = false;
-
 var usuario_multi;
 var senha_multi;
 
@@ -168,16 +167,6 @@ function buscarEAdicionarBotao() {
 
     var syncInfoBtn = criarBotao('syncinfo', 'SINCRONIZAR INFORMAÇÕES', 'zmdi zmdi-refresh-sync', syncInfo);
     contactActions.appendChild(syncInfoBtn);
-
-    var xpath = "/html/body/data/section/section/div/div[2]/div[1]/div/div/div[2]/div[1]/div[2]";
-    var buttonElement = document.evaluate(xpath, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
-
-    if (buttonElement) {
-        buttonElement.addEventListener('click', syncAll());
-        console.log("TESTE");
-    } else {
-        console.error("Elemento do botão não encontrado com o XPath fornecido.");
-    }
 }
 
 function criarBotao(id, title, iconClass, clickHandler) {
@@ -315,6 +304,13 @@ function mostrarModal() {
     protocoloModal(Protocolo);
 }
 
+function retornarProtocolo() {
+    const xpath = "/html/body/data/section/section/div/div[2]/div[5]/div[2]/div[3]/div/div[2]/div[1]";
+    const xpathResult = document.evaluate(xpath, document, null, XPathResult.STRING_TYPE, null);
+    const Protocolo = xpathResult.stringValue;
+    return Protocolo
+}
+
 function fecharModal() {
     var modal = document.querySelector('.modal');
     var backdrop = document.querySelector('.modal-backdrop');
@@ -383,7 +379,7 @@ function adicionarOpcoes(razoesSociais) {
     selectClientes.appendChild(optionPadrao);
 
     // Ordena as razões sociais em ordem alfabética
-    razoesSociais.sort(function(a, b) {
+    razoesSociais.sort(function (a, b) {
         return a.razaoSocial.localeCompare(b.razaoSocial);
     });
 
@@ -645,43 +641,53 @@ function testeGrafico() {
 }
 
 function syncInfo() {
-    var porta = retornarPorta();
-    var myHeaders = new Headers();
-    myHeaders.append("Content-Type", "application/x-www-form-urlencoded");
-    var urlencoded = new URLSearchParams();
-    urlencoded.append("porta", porta);
-    var requestOptions = {
-        method: 'POST',
-        headers: myHeaders,
-        body: urlencoded,
-        redirect: 'follow'
-    };
-    fetch("https://portal.infowaycloud.com.br/api/sync_zabbix.php", requestOptions)
-        .then(response => response.json())
-        .then(result => {
-            // Verifica se há dados na resposta antes de acessar propriedades
-            if (result) {
-                const dados = result;
+    chrome.storage.local.get(['usuario_multi', 'senha_multi'], function (result) {
+        var porta = retornarPorta();
+        var protocolo = retornarProtocolo();
+        var usuario_multi = result.usuario_multi;
+        var senha_multi = result.senha_multi;
+        var myHeaders = new Headers();
+        myHeaders.append("Content-Type", "application/x-www-form-urlencoded");
+        var urlencoded = new URLSearchParams();
+        urlencoded.append("login", usuario_multi);
+        urlencoded.append("senha", senha_multi);
+        urlencoded.append("porta", porta);
+        urlencoded.append("protocolo", protocolo);
+        console.log(usuario_multi)
+        console.log(senha_multi)
+        console.log(porta)
+        console.log(protocolo)
+        var requestOptions = {
+            method: 'POST',
+            headers: myHeaders,
+            body: urlencoded,
+            redirect: 'follow'
+        };
+        fetch("https://portal.infowaycloud.com.br/api/sync_zabbix.php", requestOptions)
+            .then(response => response.json())
+            .then(result => {
+                if (result) {
+                    const dados = result;
 
-                // Agora você pode referenciar as informações assim:
-                const cnpj = dados.cnpj;
-                const erpnow = dados.erpnow;
-                const senha = dados.senha;
-                const personalizacao = dados.personalizacao;
-                campoCnpj(cnpj);
-                campoNome(erpnow);
-                campoSenha(senha);
-                campoPersonalizacao(personalizacao);
+                    // Agora você pode referenciar as informações assim:
+                    const cnpj = dados.cnpj;
+                    const erpnow = dados.erpnow;
+                    const senha = dados.senha;
+                    const personalizacao = dados.personalizacao;
+                    campoCnpj(cnpj);
+                    campoNome(erpnow);
+                    campoSenha(senha);
+                    campoPersonalizacao(personalizacao);
 
-                console.log("Dados:", dados);
-            } else {
-                console.log("Resposta vazia ou sem dados.");
-            }
+                    console.log("Dados:", dados);
+                } else {
+                    console.log("Resposta vazia ou sem dados.");
+                }
 
-            clearInterval(intervalId);
-        })
-        .catch(error => console.log('Erro na requisição:', error));
-
+                clearInterval(intervalId);
+            })
+            .catch(error => console.log('Erro na requisição:', error));
+    });
 }
 
 function campoCnpj(cnpj) {
@@ -766,13 +772,16 @@ function usuariosZabbix() {
         .then(result => {
             retirarSpinner();
             console.log(result[0].result[0].lastvalue);
-
             var divElement = document.createElement("div");
             divElement.textContent = result[0].result[0].lastvalue;
             divElement.style.whiteSpace = "pre-wrap";
             divElement.style.wordWrap = "break-word";
-            divElement.style.fontSize = "50px";
-
+            divElement.style.fontSize = "40px";
+            var numeroDeLinhas = result[0].result[0].lastvalue.split('\n').length;
+            var spanElement = document.createElement("span");
+            spanElement.textContent = "Número total de usuarios: " + numeroDeLinhas;
+            spanElement.style.fontSize = "40px";
+            document.getElementById("zabbix").appendChild(spanElement);
             document.getElementById("zabbix").appendChild(divElement);
         })
         .catch(error => console.log('error', error));
@@ -908,23 +917,23 @@ function fecharChamado() {
     fecharAlerta();
 }
 
-function syncAll() {
-    var myHeaders = new Headers();
-    myHeaders.append("Content-Type", "application/x-www-form-urlencoded");
+// function syncAll() {
+//     var myHeaders = new Headers();
+//     myHeaders.append("Content-Type", "application/x-www-form-urlencoded");
 
-    var urlencoded = new URLSearchParams();
-    urlencoded.append("login", usuario_multi);
-    urlencoded.append("senha", senha_multi);
+//     var urlencoded = new URLSearchParams();
+//     urlencoded.append("login", usuario_multi);
+//     urlencoded.append("senha", senha_multi);
 
-    var requestOptions = {
-        method: 'POST',
-        headers: myHeaders,
-        body: urlencoded,
-        redirect: 'follow'
-    };
+//     var requestOptions = {
+//         method: 'POST',
+//         headers: myHeaders,
+//         body: urlencoded,
+//         redirect: 'follow'
+//     };
 
-    fetch("https://portal.infowaycloud.com.br/api/sync_all.php", requestOptions)
-        .then(response => response.text())
-        .then(result => console.log(result))
-        .catch(error => console.log('error', error));
-}
+//     fetch("https://portal.infowaycloud.com.br/api/sync_all.php", requestOptions)
+//         .then(response => response.text())
+//         .then(result => console.log(result))
+//         .catch(error => console.log('error', error));
+// }
