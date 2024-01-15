@@ -536,6 +536,7 @@ function zabbixModal() {
                     <div class="modal-footer ng-scope">
                         <button class="btn btn-link ng-binding waves-effect" id="usuariosZabbix">Usuarios</button>
                         <button class="btn btn-link ng-binding waves-effect" id="testeGrafico">Graficos</button>
+                        <button class="btn btn-link ng-binding waves-effect" id="recursos">Recursos</button>
                         <button class="btn btn-link ng-binding waves-effect" id="fecharModal">Fechar</button>
                     </div>
                 </div>
@@ -564,6 +565,11 @@ function zabbixModal() {
     var usuariosZabbixBtn = document.querySelector('#usuariosZabbix');
     if (usuariosZabbixBtn) {
         usuariosZabbixBtn.addEventListener('click', usuariosZabbix);
+    }
+
+    var recursosBtn = document.querySelector('#recursos');
+    if (recursosBtn) {
+        recursosBtn.addEventListener('click', recursosZabbix);
     }
 }
 
@@ -638,6 +644,16 @@ function testeGrafico() {
             });
         })
         .catch(error => console.log('error', error));
+}
+
+function recursosZabbix(){
+    removerConteudo()
+    carregarSpinner()
+
+    var portaZabbix = retornarPorta();
+    console.log(portaZabbix);
+
+    
 }
 
 function syncInfo() {
