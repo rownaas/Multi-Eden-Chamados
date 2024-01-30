@@ -1,4 +1,5 @@
 var auth;
+var auth_multi;
 var id_user;
 var name_user;
 var login_user;
@@ -12,8 +13,8 @@ function startup() {
     chrome.storage.local.get(['usuario', 'senha', 'naoMostrar', 'usuario_multi', 'senha_multi'], function (result) {
         var usuario = result.usuario;
         var senha = result.senha;
-        var usuario_multi = result.usuario_multi;
-        var senha_multi = result.senha_multi;
+        usuario_multi = result.usuario_multi;
+        senha_multi = result.senha_multi;
 
         // Verificar se usuário e senha são nulos ou indefinidos
         if (usuario === null || senha === null || usuario_multi === null || senha_multi === null || typeof usuario === 'undefined' || typeof senha === 'undefined' || typeof usuario_multi === 'undefined' || typeof senha_multi === 'undefined') {
@@ -220,22 +221,23 @@ function mostrarModal() {
                 <div class="form-group fg-float m-b-30">
                     <div class="fg-line fg-toggled">
                             <select class="form-control input-lg select-simples" id="tipoAtendimento" style="">
-                                <option>Atualizacao</option>
-                                <option>Infodrive</option>
-                                <option>Lentidao</option>
-                                <option>Oscilacao</option>
-                                <option>Certificado</option>
-                                <option>ProgramaDeGoverno</option>
-                                <option>Vpn</option>
-                                <option>AcessoCloud</option>
-                                <option>Instalacao</option>
-                                <option>AcessoSuporte</option>
-                                <option>Backup</option>
-                                <option>Duvida</option>
-                                <option>ErroSistema</option>
-                                <option>Impressora</option>
-                                <option>Zabbix</option>
-                                <option>Outros</option>
+                                <option id=8>Acesso Cloud/Web/Drive</option>
+                                <option id=10>Acesso Suporte</option>
+                                <option id=1>Atualização</option>
+                                <option id=11>Backup</option>
+                                <option id=5>Certificado</option>
+                                <option id=12>Dúvida</option>
+                                <option id=13>Erro sistema</option>
+                                <option id=17>Gerenciador Infoway</option>
+                                <option id=14>Impressora</option>
+                                <option id=2>Infodrive</option>
+                                <option id=9>Instalação</option>
+                                <option id=3>Lentidão</option>
+                                <option id=4>Oscilação</option>
+                                <option id=16>Outros</option>
+                                <option id=6>Programa de Governo</option>
+                                <option id=7>VPN</option>
+                                <option id=15>Zabbix</option>
                             </select>
                         <label class="fg-label ng-binding">Tipo Atendimento</label>
                     </div>
@@ -427,97 +429,128 @@ function protocoloModal(protocolo) {
 
 
 function lancarModal() {
-    var origem = document.querySelector('#origem').value;
-    var status = document.querySelector('#status').value;
-    var tipoAtendimento = document.querySelector('#tipoAtendimento').value;
-    var cliente = document.querySelector('#cliente').value;
-    var protocolo = document.querySelector('#protocolo').value;
-    var observacao = document.querySelector('#observacao').value;
-    var clienteSelect = document.querySelector('#cliente');
-    var selectedOption = clienteSelect.options[clienteSelect.selectedIndex];
-    var telefone = selectedOption.getAttribute('telefone');
-    var nome = selectedOption.getAttribute('nome');
-    var id = selectedOption.id;
-    let dataAtual = new Date();
-    let dia = dataAtual.getDate();
-    let mes = dataAtual.getMonth() + 1;
-    let ano = dataAtual.getFullYear();
-    let dataCadastro = `${dia.toString().padStart(2, '0')}/${mes.toString().padStart(2, '0')}/${ano}`;
-    let dataFechamento = dataCadastro;
+    chrome.storage.local.get(['usuario_multi', 'senha_multi'], function (result) {
+        var dialogo;
+        var origem = document.querySelector('#origem').value;
+        var status = document.querySelector('#status').value;
+        var tipoAtendimento = document.querySelector('#tipoAtendimento');
+        var tipoAtendimentoId = tipoAtendimento.options[tipoAtendimento.selectedIndex].id;
+        var cliente = document.querySelector('#cliente').value;
+        var protocolo = document.querySelector('#protocolo').value;
+        var observacao = document.querySelector('#observacao').value;
+        var clienteSelect = document.querySelector('#cliente');
+        var selectedOption = clienteSelect.options[clienteSelect.selectedIndex];
+        var telefone = selectedOption.getAttribute('telefone');
+        var nome = selectedOption.getAttribute('nome');
+        var id = selectedOption.id;
+        let dataAtual = new Date();
+        let dia = dataAtual.getDate();
+        let mes = dataAtual.getMonth() + 1;
+        let ano = dataAtual.getFullYear();
+        let dataCadastro = `${dia.toString().padStart(2, '0')}/${mes.toString().padStart(2, '0')}/${ano}`;
+        let dataFechamento = dataCadastro;
 
-    //Mensagens
 
-    if (log) {
-        console.log(origem);
-        console.log(status);
-        console.log(tipoAtendimento);
-        console.log(cliente);
-        console.log(protocolo);
-        console.log(observacao);
-        console.log(nome);
-        console.log(telefone);
-        console.log(id);
-        console.log(dataCadastro);
-        console.log(dataFechamento);
-    }
+        var myHeaders = new Headers();
+        myHeaders.append("Content-Type", "application/x-www-form-urlencoded");
 
-    var json_de_novo_chamado = {
-        "id": 0,
-        "origem": origem,
-        "status": status,
-        "dataCadastro": dataCadastro,
-        "dataFechamento": dataFechamento,
-        "contato": nome,
-        "fone": telefone,
-        "protocolo": protocolo,
-        "observacao": observacao,
-        "documento": "",
-        "nomeDocumento": "chat.txt",
-        "tecnicoResponsavel": {
-            "id": id_user,
-            "nome": name_user,
-            "login": login_user
-        },
-        "venda": {
-            "produtos": [],
-            "servico": "",
-            "quantidadeServico": 0,
-            "valorTotalServico": "R$ 0,00",
-            "descontoServico": "0,00 %",
-            "tecnicoServico": "",
-            "observacaoServico": ""
-        },
-        "tipoAtendimento": tipoAtendimento,
-        "cliente": {
-            "razaoSocial": cliente,
-            "id": id
-        }
-    };
+        var urlencoded = new URLSearchParams();
+        urlencoded.append("protocolo", protocolo);
+        urlencoded.append("usuario", result.usuario_multi);
+        urlencoded.append("senha", result.senha_multi);
 
-    var jsonString = JSON.stringify(json_de_novo_chamado);
+        var requestOptions = {
+            method: 'POST',
+            headers: myHeaders,
+            body: urlencoded,
+            redirect: 'follow'
+        };
 
-    var myHeaders = new Headers();
-    myHeaders.append("Content-Type", "application/json");
+        fetch("https://portal.infowaycloud.com.br/api/funcoes/historicoMensagens.php", requestOptions)
+            .then(response => response.text())
+            .then(result => {
+                console.log(result), dialogo = result
+                if (log) {
+                    console.log(origem);
+                    console.log(status);
+                    console.log(tipoAtendimento);
+                    console.log(cliente);
+                    console.log(protocolo);
+                    console.log(observacao);
+                    console.log(dialogo);
+                    console.log(nome);
+                    console.log(telefone);
+                    console.log(id);
+                    console.log(dataCadastro);
+                    console.log(dataFechamento);
+                }
 
-    var raw = JSON.stringify({
-        "auth": auth,
-        "json": jsonString
+                var json_de_novo_chamado = {
+                    "id": 0,
+                    "origem": origem,
+                    "status": status,
+                    "dataCadastro": dataCadastro,
+                    "dataFechamento": dataFechamento,
+                    "contato": nome,
+                    "fone": telefone,
+                    "protocolo": protocolo,
+                    "observacao": observacao,
+                    "dialogo": dialogo,
+                    "documento": "",
+                    "nomeDocumento": "",
+                    "tecnicoResponsavel": {
+                        "id": id_user,
+                        "nome": name_user,
+                        "login": login_user
+                    },
+                    "venda": {
+                        "produtos": [],
+                        "servico": "",
+                        "quantidadeServico": 0,
+                        "valorTotalServico": "R$ 0,00",
+                        "descontoServico": "0,00 %",
+                        "tecnicoServico": "",
+                        "observacaoServico": ""
+                    },
+                    "tipoAtendimento": {
+                        "nome": tipoAtendimento.value,
+                        "id": tipoAtendimentoId,
+                        "dataCadastro": "01/01/0001 00:00:00",
+                        "dataAlteracao": "01/01/0001 00:00:00"
+                    },
+                    "cliente": {
+                        "razaoSocial": cliente,
+                        "id": id
+                    }
+                };
+
+                var jsonString = JSON.stringify(json_de_novo_chamado);
+
+                console.log(json_de_novo_chamado);
+
+                var myHeaders = new Headers();
+                myHeaders.append("Content-Type", "application/json");
+
+                var raw = JSON.stringify({
+                    "auth": auth,
+                    "json": jsonString
+                });
+
+                var requestOptions = {
+                    method: 'POST',
+                    headers: myHeaders,
+                    body: raw,
+                    redirect: 'follow'
+                };
+
+                fetch("https://portal.infowaycloud.com.br/api/chamado.php", requestOptions)
+                    .then(response => response.text())
+                    .then(result => modalChamado(result), fecharModal())
+                    .catch(error => alert('error', error));
+            })
+            .catch(error => console.log('error', error));
     });
-
-    var requestOptions = {
-        method: 'POST',
-        headers: myHeaders,
-        body: raw,
-        redirect: 'follow'
-    };
-
-    fetch("https://portal.infowaycloud.com.br/api/chamado.php", requestOptions)
-        .then(response => response.text())
-        .then(result => modalChamado(result), fecharModal())
-        .catch(error => alert('error', error));
 }
-
-
 
 //ZABBIX
 
@@ -673,9 +706,9 @@ function recursosZabbix() {
             retirarSpinner();
 
             miniCartao('NOME', result.nome)
-            miniCartao('RAM', result.ram, true,'Utilização: ', result.consumoRam)
+            miniCartao('RAM', result.ram, true, 'Utilização: ', result.consumoRam)
             miniCartao('DISCO', result.free + 'GB Livres/' + result.total + 'GB Totais')
-            miniCartao('VCPU', result.vcpu, true, 'Consumo atual: ' , result.consumoCpu)
+            miniCartao('VCPU', result.vcpu, true, 'Consumo atual: ', result.consumoCpu)
             miniCartao('CLOUD', result.cloud)
             miniCartao('TEMPO LIGADO', result.tempo)
             miniCartao('USUARIOS', result.usuarios, true, 'Ativos: ', result.usuarios_ativos)
@@ -982,15 +1015,15 @@ function fecharChamado() {
 // }
 
 
-function miniCartao(nome, valor, util, subtitulo,  consumo) {
-    if(!util){
+function miniCartao(nome, valor, util, subtitulo, consumo) {
+    if (!util) {
         var elemento = `
         <div class="col-lg-3 col-md-6" bis_skin_checked="1">
             <div class="indicador-item" style="background-color: rgb(161, 136, 127); --darkreader-inline-bgcolor: #a88072;" data-darkreader-inline-bgcolor="" bis_skin_checked="1">
                 <i class="" data-fa-i2svg=""><svg height="655" viewBox="0 0 400.83 104.99" width="2500" xmlns="http://www.w3.org/2000/svg"><path d="m0 0h400.83v104.99h-400.83zm0 0" fill="#d40000"/><path d="m17.14 16h57.96v7.53l-46.65 57.15h47.79v8.31h-60.24v-7.53l46.65-57.15h-45.51zm98.3 9.73-13.54 36.33h27.13zm-5.64-9.73h11.32l28.12 72.99h-10.38l-6.71-18.72h-33.27l-6.72 18.72h-10.53zm60.14 38.13v26.74h16.01c5.37 0 9.35-1.1 11.94-3.3s3.88-5.57 3.88-10.09c0-4.56-1.29-7.93-3.88-10.1-2.59-2.16-6.57-3.25-11.94-3.25zm0-30.02v22h14.78c4.88 0 8.51-.91 10.9-2.71 2.39-1.81 3.58-4.57 3.58-8.28 0-3.68-1.2-6.44-3.58-8.26-2.39-1.82-6.02-2.74-10.9-2.74h-14.78zm-9.98-8.11h25.5c7.61 0 13.48 1.56 17.59 4.69 4.12 3.13 6.17 7.58 6.17 13.35 0 4.46-1.05 8.02-3.16 10.66s-5.21 4.29-9.29 4.94c4.91 1.04 8.72 3.21 11.44 6.52s4.08 7.44 4.08 12.39c0 6.52-2.24 11.55-6.72 15.11-4.48 3.55-10.86 5.33-19.12 5.33h-26.49zm78.32 38.13v26.74h16.02c5.37 0 9.35-1.1 11.93-3.3 2.59-2.2 3.88-5.57 3.88-10.09 0-4.56-1.29-7.93-3.88-10.1-2.59-2.16-6.57-3.25-11.93-3.25zm0-30.02v22h14.78c4.88 0 8.51-.91 10.9-2.71 2.39-1.81 3.58-4.57 3.58-8.28 0-3.68-1.19-6.44-3.58-8.26s-6.02-2.74-10.9-2.74h-14.78zm-9.98-8.11h25.5c7.61 0 13.48 1.56 17.59 4.69 4.12 3.13 6.18 7.58 6.18 13.35 0 4.46-1.05 8.02-3.16 10.66s-5.21 4.29-9.29 4.94c4.91 1.04 8.72 3.21 11.44 6.52s4.08 7.44 4.08 12.39c0 6.52-2.24 11.55-6.72 15.11-4.48 3.55-10.86 5.33-19.12 5.33h-26.5zm97.24 0h10.98l17.35 26.21 17.52-26.21h10.61l-22.84 34.19 25.68 38.8h-10.98l-20.21-30.54-20.41 30.54h-10.61l25.74-38.52zm-28.91 0h9.98v72.99h-9.98zm0 0" fill="#fff"/></svg></i>
                 <div class="indicador-informacoes" bis_skin_checked="1">
-                    <small class="ng-binding">` + nome +`</small>
-                    <h2 class="ng-binding">` + valor +`</h2>
+                    <small class="ng-binding">` + nome + `</small>
+                    <h2 class="ng-binding">` + valor + `</h2>
                 </div>
                 <hr>
             </div>
@@ -1001,12 +1034,12 @@ function miniCartao(nome, valor, util, subtitulo,  consumo) {
             <div class="indicador-item" style="background-color: rgb(161, 136, 127); --darkreader-inline-bgcolor: #a88072;" data-darkreader-inline-bgcolor="" bis_skin_checked="1">
             <i class="" data-fa-i2svg=""><svg height="655" viewBox="0 0 400.83 104.99" width="2500" xmlns="http://www.w3.org/2000/svg"><path d="m0 0h400.83v104.99h-400.83zm0 0" fill="#d40000"/><path d="m17.14 16h57.96v7.53l-46.65 57.15h47.79v8.31h-60.24v-7.53l46.65-57.15h-45.51zm98.3 9.73-13.54 36.33h27.13zm-5.64-9.73h11.32l28.12 72.99h-10.38l-6.71-18.72h-33.27l-6.72 18.72h-10.53zm60.14 38.13v26.74h16.01c5.37 0 9.35-1.1 11.94-3.3s3.88-5.57 3.88-10.09c0-4.56-1.29-7.93-3.88-10.1-2.59-2.16-6.57-3.25-11.94-3.25zm0-30.02v22h14.78c4.88 0 8.51-.91 10.9-2.71 2.39-1.81 3.58-4.57 3.58-8.28 0-3.68-1.2-6.44-3.58-8.26-2.39-1.82-6.02-2.74-10.9-2.74h-14.78zm-9.98-8.11h25.5c7.61 0 13.48 1.56 17.59 4.69 4.12 3.13 6.17 7.58 6.17 13.35 0 4.46-1.05 8.02-3.16 10.66s-5.21 4.29-9.29 4.94c4.91 1.04 8.72 3.21 11.44 6.52s4.08 7.44 4.08 12.39c0 6.52-2.24 11.55-6.72 15.11-4.48 3.55-10.86 5.33-19.12 5.33h-26.49zm78.32 38.13v26.74h16.02c5.37 0 9.35-1.1 11.93-3.3 2.59-2.2 3.88-5.57 3.88-10.09 0-4.56-1.29-7.93-3.88-10.1-2.59-2.16-6.57-3.25-11.93-3.25zm0-30.02v22h14.78c4.88 0 8.51-.91 10.9-2.71 2.39-1.81 3.58-4.57 3.58-8.28 0-3.68-1.19-6.44-3.58-8.26s-6.02-2.74-10.9-2.74h-14.78zm-9.98-8.11h25.5c7.61 0 13.48 1.56 17.59 4.69 4.12 3.13 6.18 7.58 6.18 13.35 0 4.46-1.05 8.02-3.16 10.66s-5.21 4.29-9.29 4.94c4.91 1.04 8.72 3.21 11.44 6.52s4.08 7.44 4.08 12.39c0 6.52-2.24 11.55-6.72 15.11-4.48 3.55-10.86 5.33-19.12 5.33h-26.5zm97.24 0h10.98l17.35 26.21 17.52-26.21h10.61l-22.84 34.19 25.68 38.8h-10.98l-20.21-30.54-20.41 30.54h-10.61l25.74-38.52zm-28.91 0h9.98v72.99h-9.98zm0 0" fill="#fff"/></svg></i>
                 <div class="indicador-informacoes" bis_skin_checked="1">
-                    <small class="ng-binding">` + nome +`</small>
-                    <h2 class="ng-binding">` + valor +`</h2>
+                    <small class="ng-binding">` + nome + `</small>
+                    <h2 class="ng-binding">` + valor + `</h2>
                 </div>
                 <hr>
                     <div class="indicador-informacoes" bis_skin_checked="1">
-                        <div class="ng-binding" bis_skin_checked="1">` + subtitulo +` <b class="ng-binding">`+ consumo +`</b></div>
+                        <div class="ng-binding" bis_skin_checked="1">` + subtitulo + ` <b class="ng-binding">` + consumo + `</b></div>
                     </div>
             </div>
         </div>`;

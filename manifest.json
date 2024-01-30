@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "InfoMonitor",
-  "version": "2.7",
+  "version": "2.9.1",
   "description": "Extensão desenvolvida para ajudar os suportes com informações do zabbix e para lançar chamados com facilidade",
   "action": {
     "default_icon": "icon.png",
@@ -28,7 +28,7 @@
   },
   "permissions": [
     "storage"
-  ],
+  ],  
   "host_permissions": [
     "*://painel.multi360.com.br/"
   ]
